@@ -1224,7 +1224,7 @@
       .login-entry, .register-entry { display: none; padding: 10px 22px; font-size: 15px; }
       body.logged-out .login-entry, body.logged-out .register-entry { display: inline-flex; }
       body.logged-out .bell-wrap, body.logged-out .user-wrap { display: none; }
-      body.logged-out #logoutBtn, body.logged-out #menuRegister { display: none; }
+      body.logged-out #logoutBtn, body.logged-in #menuRegister { display: none; }
       @media (max-width: 640px) {
         .login-entry, .register-entry { padding: 9px 15px; font-size: 14px; border-radius: 14px; }
       }
