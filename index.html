@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="description" content="暖言小站 — 员工意见反馈平台。把心里的话，说给愿意听的人：匿名写下建议，在「我的反馈」里看进度，每一条都有回音。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="暖言小站 - 把心里的话，说给愿意听的人" />
+    <meta property="og:description" content="员工意见反馈平台：匿名写下建议，在「我的反馈」里看进度，每一条都有回音。" />
+    <meta name="theme-color" content="#FBF8F1" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F1A13" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%232F6B4F'/%3E%3Cpath fill='%23FAF7F0' d='M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z'/%3E%3Cpath fill='%23E07856' transform='translate(16.9 14.9) scale(0.6)' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%232F6B4F'/%3E%3Cpath fill='%23FAF7F0' d='M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z'/%3E%3Cpath fill='%23E07856' transform='translate(16.9 14.9) scale(0.6)' d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E" />
+    <title>暖言小站 - 把心里的话，说给愿意听的人</title>
+    <link rel="stylesheet" href="/static/index.css?v=20261019a">
+
+  </head>
+  <body>
+    <!-- ================= splash ================= -->
+    <div class="splash" id="splash" aria-hidden="true">
+      <svg class="splash-logo" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path class="sp-bubble" pathLength="100" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" stroke="#FAF7F0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <g transform="translate(6.96 6.5) scale(0.42)"><path class="sp-heart" fill="#E8876B" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g>
+      </svg>
+      <div class="splash-name"><span class="is-4" >暖</span><span class="is-5" >言</span><span class="is-6" >小</span><span class="is-7" >站</span></div>
+      <p class="splash-tag">把心里的话，说给愿意听的人。</p>
+      <div class="splash-bar"><span></span></div>
+      <div class="splash-ver">v2.0</div>
+    </div>
+    <div class="progress" id="scrollProgress" aria-hidden="true"></div>
+    <div class="draft-bar" id="draftBar" hidden>
+      <span>上次没写完的建议还在，接着写吗？</span>
+      <span class="db-actions">
+        <button type="button" id="draftRestore">接着写</button>
+        <button type="button" id="draftDiscard">丢弃</button>
+      </span>
+    </div>
+    <!-- ================= header ================= -->
+    <header id="siteHeader">
+      <div class="wrap">
+        <div class="bar">
+          <a class="logo" href="#top" aria-label="暖言小站首页">
+            <span class="logo-mark" aria-hidden="true">
+              <svg width="38" height="38" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg>
+            </span>
+            暖言小站
+          </a>
+          <nav class="main" aria-label="主导航">
+            <span class="nav-ind" aria-hidden="true"></span>
+            <a href="#top" class="active">首页</a>
+            <a href="#write" data-write-open>写下建议</a>
+            <button type="button" data-open-modal="mineModal">我的反馈</button>
+          </nav>
+          <div class="spacer"></div>
+          <div class="bell-wrap">
+            <button type="button" class="bell-btn" id="bellBtn" aria-label="通知" aria-expanded="false" aria-haspopup="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            </button>
+            <div class="bell-panel" id="bellPanel" aria-hidden="true">
+              <div class="bp-head">通知</div>
+              <div class="bp-empty">
+                <span class="bp-empty-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+                <p>暂无新通知</p>
+              </div>
+            </div>
+          </div>
+          <div class="user-wrap">
+            <button type="button" class="user-chip" id="userChip" aria-label="账号菜单" aria-expanded="false" aria-haspopup="true">
+              <span class="avatar" aria-hidden="true">林</span>
+              <span class="u-meta"><span class="u-name">林欣</span><br /><span class="u-dept">运营部 · 已登录</span></span>
+              <svg class="u-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+            <div class="user-panel" id="userPanel" aria-hidden="true">
+              <button type="button" id="chipRegister">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+                注册新账号
+              </button>
+              <button type="button" id="chipLogout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+                退出登录
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary login-entry" id="loginEntry">登录</button>
+          <button type="button" class="btn btn-ghost register-entry" id="registerEntry">注册</button>
+          <button class="burger" id="burgerBtn" aria-label="打开菜单" aria-expanded="false">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="mobile-menu" id="mobileMenu">
+        <a href="#top">首页</a>
+        <a href="#write" data-write-open>写下建议</a>
+        <button type="button" data-open-modal="mineModal">我的反馈</button>
+        <button type="button" id="menuRegister">注册新账号</button>
+        <button type="button" id="logoutBtn">退出登录</button>
+      </div>
+    </header>
+
+    <!-- ================= hero ================= -->
+    <section class="hero" id="top">
+      <div class="blobs" aria-hidden="true">
+        <div class="plx is-8" data-depth="26" ><div class="blob blob-1"></div></div>
+        <div class="plx is-9" data-depth="-18" ><div class="blob blob-2"></div></div>
+        <div class="plx is-10" data-depth="14" ><div class="blob blob-3"></div></div>
+      </div>
+      <div class="wrap">
+        <div class="hero-grid">
+          <div>
+            <span class="hero-eyebrow"><span class="dot"></span>员工意见反馈平台 · 匿名直达承办部门</span>
+            <h1 class="hero-title" id="heroTitle">把心里的话，说给愿意听的人。</h1>
+            <p class="hero-greeting is-11" id="heroGreeting" ><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><span id="greetingText">晚上好，test</span></p>
+            <p class="hero-sub is-12" >每一种声音，都值得被听见。写下来，我们认真办，进度会回到你的「我的反馈」里。</p>
+            <div class="hero-cta is-13" >
+              <a class="btn btn-primary" href="#write" data-write-open>
+                写下我的建议
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </a>
+              <button class="btn btn-ghost" type="button" data-open-modal="mineModal">查看我的反馈</button>
+            </div>
+            <ul class="trust-row is-14"  aria-label="放心提建议">
+              <li>
+                <span class="t-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+                <b>部门看不到你是谁</b>
+              </li>
+              <li>
+                <span class="t-ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></span>
+                <b>平均 2.3 天回复</b>
+              </li>
+            </ul>
+            <p class="scroll-hint" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 12l6 6 6-6"/></svg>
+              下滑看看
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= mailbox （暖言信箱） ================= -->
+    <section class="mailbox-sec" aria-label="暖言信箱">
+      <div class="wrap">
+        <div class="duo-grid">
+          <div class="chat-stage">
+            <svg class="float-heart is-15"  width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.9-9.8-9.2C.6 8.6 2.6 5 6.1 5c2 0 3.4 1.1 4.1 2.3h3.6C14.5 6.1 15.9 5 17.9 5c3.5 0 5.5 3.6 3.9 6.8C19.5 16.1 12 21 12 21z" transform="scale(0.92)"/></svg>
+            <svg class="float-heart is-16"  width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg class="float-heart is-17"  width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <div class="chat-card">
+              <button type="button" class="chat-replay" id="chatReplay" aria-label="重播聊天动画">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              </button>
+              <div class="chat-head">
+                <span class="c-avatar">
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </span>
+                <span><span class="c-name">暖言信箱</span><br /><span class="c-status">演示对话</span></span>
+              </div>
+              <div class="bubbles">
+                <div class="bubble in" data-b="1">食堂午餐想多开一个清淡窗口，可以吗？
+                  <span class="b-meta">14:32</span>
+                  <button type="button" class="b-heart" aria-label="给这条消息点心"><svg width="11" height="11" viewBox="0 0 24 24" fill="#E07856"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
+                </div>
+                <div class="bubble in" data-b="2">加班餐补的申请流程有点绕，能简化一下吗？
+                  <span class="b-meta">14:32 · 已读</span>
+                </div>
+                <div class="bubble typing" id="typingBubble" aria-hidden="true">正在输入<span class="tdots" aria-hidden="true"><i></i><i></i><i></i></span></div>
+                <div class="bubble out" data-b="3">收到！两条都已经转给综合服务中心，本周内给你答复。
+                  <span class="b-meta">14:33</span>
+                  <button type="button" class="b-heart" aria-label="给这条回复点心"><svg width="11" height="11" viewBox="0 0 24 24" fill="#E07856"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></button>
+                </div>
+                <div class="bubble in" data-b="4">谢谢，感觉真的被听见了。
+                  <span class="b-meta">14:34 · 已读</span>
+                </div>
+                <div class="float-chip" id="chatChip">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                  96% 的建议都收到了回复
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="stats-grid" id="statsGrid" role="region" aria-label="平台运行数据">
+          <div class="stats-intro rv">
+            <div class="s-kicker">平台运行情况</div>
+            <div class="s-title">说出来的话，<br />都有回音。</div>
+          </div>
+          <span class="stats-demo" aria-hidden="true">演示数据</span>
+          <div class="stat rv is-1" >
+            <div class="num"><span class="count" data-target="128" data-decimals="0">0</span><span class="unit">条</span></div>
+            <div class="lbl">本月收到建议</div>
+            <svg class="spark" width="96" height="26" viewBox="0 0 96 26" fill="none" aria-hidden="true"><polyline points="0,19 16,15 32,17 48,10 64,12 80,6 96,8" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="93" cy="8" r="2.6" fill="#fff"/></svg>
+            <span class="tip">较上月 +12%</span>
+          </div>
+          <div class="stat rv is-2" >
+            <div class="num"><span class="count" data-target="96" data-decimals="0">0</span><span class="unit">%</span></div>
+            <div class="lbl">已回复比例</div>
+            <svg class="spark" width="96" height="26" viewBox="0 0 96 26" fill="none" aria-hidden="true"><polyline points="0,16 16,14 32,15 48,11 64,12 80,8 96,7" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="93" cy="7" r="2.6" fill="#fff"/></svg>
+            <span class="tip">较上月 +4%</span>
+          </div>
+          <div class="stat rv is-18" >
+            <div class="num"><span class="count" data-target="2.3" data-decimals="1">0</span><span class="unit">天</span></div>
+            <div class="lbl">平均回复时长</div>
+            <svg class="spark" width="96" height="26" viewBox="0 0 96 26" fill="none" aria-hidden="true"><polyline points="0,7 16,9 32,8 48,12 64,11 80,15 96,17" stroke="rgba(255,255,255,0.8)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="93" cy="17" r="2.6" fill="#fff"/></svg>
+            <span class="tip">较上月快了 0.4 天</span>
+          </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= departments ================= -->
+    <section class="block dept-sec" id="departments">
+      <div class="wrap">
+        <div class="sec-head rv">
+          <span class="sec-tag">选承办部门</span>
+          <h2>这件事，该说给哪个部门听？</h2>
+        </div>
+        <div class="dept-grid" id="deptGrid">
+          <button type="button" class="dept-card rv is-3" data-dept="综合办公室" >
+            <span class="d-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="d-icon"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9.5 21v-4h5v4"/><path d="M9.5 10.5h.01M14.5 10.5h.01M12 7.5h.01" stroke-width="2.6"/></svg></span>
+            <h3>综合办公室</h3>
+            <p>办文办会、综合协调与督查督办</p>
+            <span class="d-go">选这个部门 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="dept-card rv is-1" data-dept="人事部" >
+            <span class="d-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="d-icon"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M15.5 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+            <h3>人事部</h3>
+            <p>招聘、薪酬、绩效、培训与员工关系</p>
+            <span class="d-go">选这个部门 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="dept-card rv is-2" data-dept="运行管理部" >
+            <span class="d-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="d-icon"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+            <h3>运行管理部</h3>
+            <p>运行调度、流程优化与安全管理</p>
+            <span class="d-go">选这个部门 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="dept-card rv is-3" data-dept="经营管理部" >
+            <span class="d-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="d-icon"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="m7 14 4-4 3 3 5-6"/><path d="M15 7h4v4"/></svg></span>
+            <h3>经营管理部</h3>
+            <p>经营分析、预算管理与项目统筹</p>
+            <span class="d-go">选这个部门 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="dept-card rv is-1" data-dept="电子档案管理中心" >
+            <span class="d-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="d-icon"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M10 13.5h4"/></svg></span>
+            <h3>电子档案管理中心</h3>
+            <p>档案收集、整理保管与查阅利用</p>
+            <span class="d-go">选这个部门 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+          <button type="button" class="dept-card rv is-2" data-dept="综合服务中心" >
+            <span class="d-check"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+            <span class="d-icon"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2.5" y="13" width="4" height="6.5" rx="2"/><rect x="17.5" y="13" width="4" height="6.5" rx="2"/><path d="M20 19.5c0 1.5-1.5 2.5-3.5 2.5H13"/></svg></span>
+            <h3>综合服务中心</h3>
+            <p>后勤保障、食堂班车与生活服务</p>
+            <span class="d-go">选这个部门 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= footer ================= -->
+    <!-- ================= bottom CTA (phones: the ask comes after the story) ================= -->
+    <section class="bottom-cta" aria-label="写下建议">
+      <div class="wrap">
+        <div class="bc-stack">
+          <a class="btn btn-primary" href="#write" data-write-open>
+            写下我的建议
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <button class="btn btn-ghost" type="button" data-open-modal="mineModal">查看我的反馈</button>
+        </div>
+        <p class="bc-note">部门看不到你是谁，平台仅保存账号用于查询进度</p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <div class="foot-top rv">
+          <div>
+            <a class="logo" href="#top">
+              <span class="logo-mark" aria-hidden="true">
+                <svg width="38" height="38" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg>
+              </span>
+              暖言小站
+            </a>
+            <p class="foot-tag">把心里的话，说给愿意听的人。这里的每一条建议，都会被认真对待。</p>
+          </div>
+          <nav class="foot-links" aria-label="页脚链接">
+            <button type="button" data-open-modal="privacyModal">隐私说明</button>
+            <button type="button" data-toast="演示站：帮助页暂略 —— 提交后的进度可以在「我的反馈」里查看。">帮助</button>
+            <a href="/admin" class="admin">管理端登录</a>
+          </nav>
+        </div>
+        <div class="foot-bottom rv is-1" >
+          <span>© 2026 暖言小站 · 员工意见反馈平台</span>
+          
+          <span>用心听 · 认真办 · 有回音</span>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ================= write page ================= -->
+    <div class="write-page" id="writePage" role="dialog" aria-modal="true" aria-label="写下建议" aria-hidden="true">
+      <div class="wp-top">
+        <div class="wp-top-in">
+          <button type="button" class="wp-brand" id="writeBrand" aria-label="返回首页">
+            <span class="logo-mark" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg></span>
+            <span>暖言小站</span>
+          </button>
+          <button type="button" class="wp-close" id="writeClose" aria-label="关闭写信页，返回首页">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="wp-scroll" id="writeScroll">
+    <!-- ================= compose ================= -->
+    <section class="block" id="compose">
+      <div class="wrap">
+        <div class="compose-grid">
+          <div class="wp-side">
+            <p class="wp-eyebrow">暖言小站</p>
+            <h2 class="wp-title">想说的话，<br />从这一句开始。</h2>
+            <div class="wp-vsteps" id="wStepsV" aria-hidden="true">
+              <div class="wp-vstep cur" data-ws="1">
+                <span class="wv-dot"><span class="wv-num">1</span><svg class="wv-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="wv-label">选承办部门</span>
+              </div>
+              <div class="wp-vstep" data-ws="2">
+                <span class="wv-dot"><span class="wv-num">2</span><svg class="wv-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="wv-label">写建议内容</span>
+              </div>
+              <div class="wp-vstep" data-ws="3">
+                <span class="wv-dot"><span class="wv-num">3</span><svg class="wv-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="wv-label">确认提交</span>
+              </div>
+            </div>
+            <p class="wp-warm"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>写下的每一句，都会被认真对待。</p>
+          </div>
+          <div class="form-card">
+            <div class="wsteps" id="wSteps" aria-hidden="true">
+              <div class="wstep cur" data-ws="1">
+                <span class="ws-dot"><span class="ws-num">1</span><svg class="ws-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="ws-label">选承办部门</span>
+              </div>
+              <div class="ws-line"><span></span></div>
+              <div class="wstep" data-ws="2">
+                <span class="ws-dot"><span class="ws-num">2</span><svg class="ws-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="ws-label">写建议内容</span>
+              </div>
+              <div class="ws-line"><span></span></div>
+              <div class="wstep" data-ws="3">
+                <span class="ws-dot"><span class="ws-num">3</span><svg class="ws-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span class="ws-label">确认提交</span>
+              </div>
+            </div>
+            <div class="wizard-viewport" id="wizardViewport">
+              <div class="wizard-track" id="wizardTrack">
+                <div class="wpane">
+                  <div class="chips" id="deptChips" role="group" aria-label="选择承办部门">
+                    <button type="button" class="chip" data-dept="综合办公室">综合办公室</button>
+                    <button type="button" class="chip" data-dept="人事部">人事部</button>
+                    <button type="button" class="chip" data-dept="运行管理部">运行管理部</button>
+                    <button type="button" class="chip" data-dept="经营管理部">经营管理部</button>
+                    <button type="button" class="chip" data-dept="电子档案管理中心">电子档案管理中心</button>
+                    <button type="button" class="chip" data-dept="综合服务中心">综合服务中心</button>
+                  </div>
+                  <p class="f-error" id="deptError" role="alert">先选一个承办部门，再继续下一步</p>
+                  <div class="wp-nav">
+                    <span class="spacer"></span>
+                    <button type="button" class="btn btn-primary" id="toStep2">下一步：写建议
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="wpane">
+                  <p class="anon-badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/><path d="M9 11.5l2 2 4-4.5"/></svg>部门看不到你是谁，平台仅保存账号用于查询进度</p>
+                  <div class="float-wrap">
+                    <textarea id="suggestText" maxlength="500" placeholder="比如：希望茶水间能添一台微波炉，带饭的同事中午排队太久了……"></textarea>
+                    <label class="float-label" for="suggestText">建议内容</label>
+                  </div>
+                  <div class="form-meta">
+                    <span><span id="charCount">0</span> / 500</span>
+                  </div>
+                  <p class="f-error" id="textError" role="alert">先写下你的建议内容，再继续下一步</p>
+                  <div class="wp-nav">
+                    <button type="button" class="btn btn-ghost" data-back="1">上一步</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn btn-primary" id="toStep3">下一步：确认提交
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="wpane">
+                  <div class="pv-card">
+                    <div class="pv-row"><span class="pv-k">承办部门</span><b id="pvDept">—</b></div>
+                    <div class="pv-row col"><span class="pv-k">建议内容</span><p id="pvText"></p></div>
+                  </div>
+                  <div class="wp-nav">
+                    <button type="button" class="btn btn-ghost" data-back="2">返回修改</button>
+                    <span class="spacer"></span>
+                    <button type="button" class="btn btn-primary btn-submit" id="submitBtn">
+                      <span class="spinner" aria-hidden="true"></span>
+                      <span class="btn-label">确认提交</span>
+                      <svg class="btn-plane" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+      </div>
+    </div>
+
+    <!-- ================= auth pages (login / register / forgot) ================= -->
+    <div class="auth-page" id="authPage" role="dialog" aria-modal="true" aria-label="登录" aria-hidden="true">
+      <div class="wp-top">
+        <div class="wp-top-in">
+          <button type="button" class="wp-brand" id="authBrand" aria-label="返回首页">
+            <span class="logo-mark" aria-hidden="true"><svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg></span>
+            <span>暖言小站</span>
+          </button>
+          <button type="button" class="wp-close" id="authClose" aria-label="关闭，返回首页">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="ap-scroll">
+        <form class="ap-card ap-panel on" id="loginPanel" novalidate>
+          <div class="ap-head">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg>
+            <h2 class="ap-title">欢迎回来</h2>
+            <p class="ap-trust"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/><path d="M9 11.5l2 2 4-4.5"/></svg>注册只为让你查到回复进度，承办部门看不到你是谁。</p>
+          </div>
+          <div class="a-field">
+            <input type="text" id="loginUser" autocomplete="username" placeholder=" " />
+            <label class="float-label" for="loginUser">账号</label>
+          </div>
+          <div class="a-field">
+            <input type="password" id="loginPass" autocomplete="current-password" placeholder=" " />
+            <label class="float-label" for="loginPass">密码</label>
+            <button type="button" class="a-eye" aria-label="显示密码"><svg class="eye-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.6 10.6 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-4.94M9.9 4.24A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12A3 3 0 1 1 9.88 9.88"/><path d="M2 2l20 20"/></svg></button>
+          </div>
+          <p class="a-error" role="alert"></p>
+          <div class="ap-row">
+            <button type="button" class="ap-link" data-ap-go="forgot">忘记密码？</button>
+          </div>
+          <button type="submit" class="btn btn-primary btn-submit ap-submit" id="loginSubmit">
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn-label">登录</span>
+          </button>
+          <p class="ap-switch">还没有账号？<button type="button" data-ap-go="register">去注册</button></p>
+        </form>
+
+        <form class="ap-card ap-panel" id="registerPanel" novalidate>
+          <div class="ap-head">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg>
+            <h2 class="ap-title">创建账号</h2>
+          </div>
+          <div class="a-field">
+            <input type="text" id="regUser" autocomplete="username" placeholder=" " pattern="[A-Za-z][A-Za-z0-9_]{3,31}" minlength="4" maxlength="32" title="字母开头，4–32 位，可使用字母、数字和下划线" />
+            <label class="float-label" for="regUser">账号</label>
+          </div>
+          <p class="a-hint">字母开头，4–32 位，可使用字母、数字和下划线</p>
+          <div class="a-field">
+            <input type="password" id="regPass" autocomplete="new-password" placeholder=" " />
+            <label class="float-label" for="regPass">设置密码</label>
+            <button type="button" class="a-eye" aria-label="显示密码"><svg class="eye-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.6 10.6 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-4.94M9.9 4.24A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12A3 3 0 1 1 9.88 9.88"/><path d="M2 2l20 20"/></svg></button>
+          </div>
+          <div class="a-meter" id="regMeter" data-level="0" aria-hidden="true"><i></i><i></i><i></i><span id="regMeterTxt"></span></div>
+          <div class="a-field">
+            <input type="password" id="regPass2" autocomplete="new-password" placeholder=" " />
+            <label class="float-label" for="regPass2">确认密码</label>
+            <button type="button" class="a-eye" aria-label="显示密码"><svg class="eye-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.6 10.6 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-4.94M9.9 4.24A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12A3 3 0 1 1 9.88 9.88"/><path d="M2 2l20 20"/></svg></button>
+          </div>
+          <div class="a-field">
+            <input type="email" id="regEmail" autocomplete="email" placeholder=" " required />
+            <label class="float-label" for="regEmail">常用邮箱（选填）</label>
+          </div>
+          <p class="a-hint">用于接收回复进度通知</p>
+          <p class="a-error" role="alert"></p>
+          <button type="submit" class="btn btn-primary btn-submit ap-submit" id="regSubmit">
+            <span class="spinner" aria-hidden="true"></span>
+            <span class="btn-label">注册</span>
+          </button>
+          <p class="ap-switch">已有账号？<button type="button" data-ap-go="login">去登录</button></p>
+        </form>
+
+        <form class="ap-card ap-panel" id="forgotPanel" novalidate>
+          <div class="ap-head">
+            <svg width="46" height="46" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect width="48" height="48" rx="12" fill="#2F6B4F"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg>
+            <h2 class="ap-title">找回密码</h2>
+          </div>
+          <div class="a-field">
+            <input type="text" id="fgUser" autocomplete="username" placeholder=" " />
+            <label class="float-label" for="fgUser">账号</label>
+          </div>
+          <div class="a-field">
+            <input type="email" id="fgEmail" autocomplete="email" placeholder=" " />
+            <label class="float-label" for="fgEmail">已绑定邮箱</label>
+          </div>
+          <p class="a-error" role="alert"></p>
+          <button type="button" class="btn btn-ghost a-send" id="fgSend">发送验证码</button>
+          <div class="fg-step2" id="fgStep2">
+            <div class="a-field">
+              <input type="text" id="fgCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder=" " />
+              <label class="float-label" for="fgCode">验证码</label>
+            </div>
+            <p class="a-hint">演示验证码是 123456，输错会看到报错演示</p>
+            <div class="a-field">
+              <input type="password" id="fgPass" autocomplete="new-password" placeholder=" " />
+              <label class="float-label" for="fgPass">新密码</label>
+              <button type="button" class="a-eye" aria-label="显示密码"><svg class="eye-on" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.6 10.6 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 4.06-4.94M9.9 4.24A9.5 9.5 0 0 1 12 5c6.5 0 10 7 10 7a18.6 18.6 0 0 1-2.16 3.19M14.12 14.12A3 3 0 1 1 9.88 9.88"/><path d="M2 2l20 20"/></svg></button>
+            </div>
+            <button type="submit" class="btn btn-primary btn-submit ap-submit" id="fgSubmit">
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="btn-label">完成重置</span>
+            </button>
+          </div>
+          <p class="ap-switch">想起密码了？<button type="button" data-ap-go="login">去登录</button></p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= send-off fx: paper plane flight (submit → success) ================= -->
+    <div class="send-fx" id="sendFx" aria-hidden="true">
+      <canvas id="sendTrail"></canvas>
+      <div class="send-plane" id="sendPlane">
+        <svg viewBox="0 0 64 48" width="58" height="44" fill="none" aria-hidden="true">
+          <path d="M62 7 L6 21 L25 27 L31 41 Z" fill="#FFFDF8"/>
+          <path d="M62 7 L25 27 L31 41 Z" fill="#EDE5CF"/>
+          <path d="M62 7 L25 27" stroke="#2F6B4F" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M25 27 L31 41" stroke="#2F6B4F" stroke-width="1.4" stroke-linecap="round" opacity="0.55"/>
+          <path d="M62 7 L6 21 L25 27 L31 41 Z" stroke="rgba(34, 81, 59, 0.30)" stroke-width="1.2" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- ================= privacy modal ================= -->
+    <div class="modal" id="privacyModal" role="dialog" aria-modal="true" aria-label="隐私说明" aria-hidden="true">
+      <div class="m-bg" data-close-modal></div>
+      <div class="m-panel">
+        <div class="m-head">
+          <h3>隐私说明</h3>
+          <button type="button" class="m-close" data-close-modal aria-label="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <div class="privacy-body">
+          <p><b>部门看不到你是谁。</b>你提交的建议内容会转交给承办部门，但承办部门看不到你的账号、邮箱和任何身份信息。</p>
+          <p><b>平台会保存你的账号。</b>为了让你能在「我的反馈」里查询处理进度，平台需要把你的账号和你提交的建议关联起来保存。仅用于进度查询，不会向承办部门透露。</p>
+          <p><b>草稿只存在你的浏览器里。</b>没写完的建议会暂存在你当前浏览器的本地存储中，换电脑或清浏览器数据会丢失。退出登录时会自动清除。</p>
+          <p><b>我们不会做的事：</b>不会把你的身份信息提供给承办部门，不会用于考核、评优或任何与建议处理无关的用途。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= success overlay ================= -->
+    <div class="overlay" id="successOverlay" role="dialog" aria-modal="true" aria-label="提交成功" aria-hidden="true">
+      <div class="disc" aria-hidden="true"></div>
+      <div class="particles" aria-hidden="true">
+        <span class="is-19" ></span>
+        <span class="is-20" ></span>
+        <span class="is-21" ></span>
+        <span class="is-22" ></span>
+        <span class="is-23" ></span>
+        <span class="is-24" ></span>
+        <span class="is-25" ></span>
+        <span class="is-26" ></span>
+        <span class="is-27" ></span>
+        <span class="is-28" ></span>
+        <span class="is-29" ></span>
+        <span class="is-30" ></span>
+      </div>
+      <svg class="s-heart is-31"  width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <svg class="s-heart is-32"  width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <svg class="s-heart is-33"  width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      <div class="success-inner">
+        <div class="s-check">
+          <svg width="104" height="104" viewBox="0 0 48 48" fill="none" aria-hidden="true"><rect x="0.75" y="0.75" width="46.5" height="46.5" rx="11.5" fill="#2F6B4F" stroke="rgba(250,247,240,0.6)" stroke-width="1.5"/><path fill="#FAF7F0" d="M24 9.5c-7.5 0-13.5 5.1-13.5 11.4 0 3.6 2 6.8 5 8.8-.3 1.9-1.2 3.7-2.6 5.2 2.8-.2 5.5-1.2 7.4-2.6 1.2.3 2.4.4 3.7.4 7.5 0 13.5-5.1 13.5-11.4S31.5 9.5 24 9.5z"/><g transform="translate(16.9 14.9) scale(0.6)"><path class="lg-heart" fill="#E07856" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></g></svg>
+        </div>
+        <h2>你的声音，已经送达<svg class="h-heart" width="30" height="30" viewBox="0 0 24 24" fill="#F2A18C" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></h2>
+        <p class="s-sub">承办部门会认真看完这一条，办理进度会同步到你的「我的反馈」。</p>
+        <div class="id-card-persp">
+          <div class="id-card">
+            <div class="ic-top"><span>建议编号 · 请保存</span><span class="ic-status">已受理</span></div>
+            <div class="ic-num-row">
+              <div class="ic-num" id="ticketNum">NY-20261018-001</div>
+              <button type="button" class="copy-btn" id="copyTicket">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span class="cp-label">复制编号</span>
+              </button>
+            </div>
+            <div class="ic-rows">
+              <span>承办部门 <b id="ticketDept">人事部</b></span>
+              <span>提交时间 <b>2026-10-18 13:48</b></span>
+              <span>预计回复 <b>2 个工作日内</b></span>
+            </div>
+            <div class="ic-barcode" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="success-actions">
+          <button type="button" class="btn btn-light" id="closeSuccess">回到首页</button>
+          <button type="button" class="btn btn-outline-light" id="againBtn">再写一条</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= my feedback modal ================= -->
+    <div class="modal" id="mineModal" role="dialog" aria-modal="true" aria-label="我的反馈" aria-hidden="true">
+      <div class="m-bg" data-close-modal></div>
+      <div class="m-panel">
+        <div class="m-head">
+          <h3>我的反馈</h3>
+          <button type="button" class="m-close" data-close-modal aria-label="关闭"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+        </div>
+        <p class="m-desc">只有你能看到这份列表，承办部门那边依然是匿名的。</p>
+        <div class="fb-skel" id="fbSkel" aria-hidden="true">
+          <div class="sk-item"><div class="sk-line w40"></div><div class="sk-line w70"></div><div class="sk-line w55"></div></div>
+          <div class="sk-item"><div class="sk-line w40"></div><div class="sk-line w70"></div><div class="sk-line w55"></div></div>
+          <div class="sk-item"><div class="sk-line w40"></div><div class="sk-line w70"></div><div class="sk-line w55"></div></div>
+        </div>
+        <div id="fbList" hidden>
+          <div id="fbMineItems"></div>
+          <div id="fbDemoItems">
+          <div class="fb-item" role="button" tabindex="0">
+            <div class="fb-top"><span>NY-20261018-001</span><span class="status-chip recv"><span class="sd" aria-hidden="true"></span>已受理</span></div>
+            <div class="fb-title">希望会议室投屏能支持无线连接</div>
+            <div class="fb-meta">运行管理部 · 今天提交 · 已由承办部门受理</div>
+            <div class="fb-detail" hidden>
+              <p><b>建议内容：</b>希望会议室投屏能支持无线连接，现在每次开会都要找 HDMI 线，很不方便。</p>
+              <div class="fb-timeline"><span class="ft-dot done"></span>已提交 · 今天 09:23<br><span class="ft-dot done"></span>已受理 · 今天 14:05<br><span class="ft-dot"></span>办理中<br><span class="ft-dot"></span>已回复</div>
+            </div>
+          </div>
+          <div class="fb-item">
+            <div class="fb-top"><span>NY-20261015-023</span><span class="status-chip doing"><span class="sd" aria-hidden="true"></span>办理中</span></div>
+            <div class="fb-title">希望班车早高峰能再加一班</div>
+            <div class="fb-meta">人事部 · 10 月 15 日提交 · 已由承办老师受理</div>
+          </div>
+          <div class="fb-item">
+            <div class="fb-top"><span>NY-20261008-011</span><span class="status-chip done"><span class="sd" aria-hidden="true"></span>已回复</span></div>
+            <div class="fb-title">建议每月办一次读书分享会</div>
+            <div class="fb-meta">综合服务中心 · 10 月 8 日提交 · 首期活动定在 11 月第一个周五</div>
+          </div>
+          <div class="fb-item">
+            <div class="fb-top"><span>NY-20260926-004</span><span class="status-chip done"><span class="sd" aria-hidden="true"></span>已回复</span></div>
+            <div class="fb-title">茶水间的热水器出水有点慢</div>
+            <div class="fb-meta">综合服务中心 · 9 月 26 日提交 · 已更换新设备</div>
+          </div>
+          </div>
+        </div>
+        <div class="fb-empty" id="fbEmpty" hidden>
+          <span class="fb-empty-ico"><svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>
+          <p>还没有提交过建议</p>
+          <button type="button" class="btn btn-primary" id="fbEmptyWrite">写下第一条建议</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="/static/index.js?v=20261019a"></script>
+  </body>
+</html>
