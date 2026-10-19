@@ -350,13 +350,13 @@ def register(payload: Registration, request: Request, response: Response):
             if code_record:
                 db.execute("UPDATE email_codes SET attempts=attempts+1 WHERE email=?", (email,))
         else:
+            display_name = (payload.display_name or "").strip() or payload.username.strip()
             try:
-                display_name = (payload.display_name or "").strip() or payload.username.strip()
-            cur = db.execute(
-                """INSERT INTO users(username,email,display_name,password_salt,password_hash,role,created_at)
-                   VALUES(?,?,?,?,?,'EMPLOYEE',?)""",
-                (payload.username.strip(), email, display_name, salt, digest, now_iso()),
-            )
+                cur = db.execute(
+                    """INSERT INTO users(username,email,display_name,password_salt,password_hash,role,created_at)
+                       VALUES(?,?,?,?,?,'EMPLOYEE',?)""",
+                    (payload.username.strip(), email, display_name, salt, digest, now_iso()),
+                )
             except sqlite3.IntegrityError:
                 raise HTTPException(409, "账号或邮箱已注册")
             db.execute("DELETE FROM email_codes WHERE email=?", (email,))
