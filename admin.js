@@ -2,9 +2,6 @@
 (function () {
   "use strict";
   var API = "/api/v1/admin";
-  var TOKEN_KEY = "ny-admin-token";
-  var token = null;
-  try { token = localStorage.getItem(TOKEN_KEY); } catch (e) {}
 
   var $ = function (id) { return document.getElementById(id); };
   var loginView = $("adLogin"), appView = $("adApp");
@@ -24,16 +21,21 @@
 
   function api(path, opts) {
     opts = opts || {};
-    var headers = { "Content-Type": "application/json" };
-    if (token) headers["Authorization"] = "Bearer " + token;
+    var headers = { "Accept": "application/json" };
+    if (opts.body) headers["Content-Type"] = "application/json";
     return fetch(API + path, {
       method: opts.method || "GET",
+      credentials: "same-origin",
       headers: headers,
       body: opts.body ? JSON.stringify(opts.body) : undefined
     }).then(function (r) {
       if (r.status === 401) { doLogout(true); throw new Error("登录已过期，请重新登录"); }
       return r.json().then(function (data) {
-        if (!r.ok) throw new Error((data && data.detail) || ("请求失败(" + r.status + ")"));
+        if (!r.ok) {
+          var detail = data && data.detail;
+          if (Array.isArray(detail)) detail = detail.map(function (item) { return item.msg; }).join("；");
+          throw new Error(detail || ("请求失败(" + r.status + ")"));
+        }
         return data;
       });
     });
@@ -48,8 +50,7 @@
     appView.hidden = true; loginView.hidden = false;
   }
   function doLogout(silent) {
-    token = null;
-    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    fetch(API + "/auth/logout", { method: "POST", credentials: "same-origin" }).catch(function () {});
     showLogin();
     if (!silent) toast("已退出登录");
   }
@@ -61,16 +62,15 @@
     var err = $("adLoginErr"), btn = $("adLoginBtn");
     err.hidden = true; btn.disabled = true; btn.textContent = "登录中…";
     fetch(API + "/auth/login", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST", credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: u, password: p })
     }).then(function (r) {
       return r.json().then(function (data) {
         if (!r.ok) throw new Error(data.detail || "登录失败");
         return data;
       });
-    }).then(function (data) {
-      token = data.token || data.access_token;
-      try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
+    }).then(function () {
       return api("/auth/me");
     }).then(function (me) {
       showApp(me);
@@ -116,14 +116,15 @@
       var trend = s.recent_trend || [];
       var max = Math.max.apply(null, trend.map(function (t) { return t.value; }).concat([1]));
       $("adTrend").innerHTML = trend.map(function (t) {
-        var h = Math.max(6, Math.round(t.value / max * 110));
-        return '<div class="ad-bar" style="height:' + h + 'px" title="' + t.date + '"><i>' + t.value + '</i></div>';
-      }).join("") || '<p style="color:var(--ink-3)">暂无数据</p>';
+        var h = Math.max(0, Math.min(20, Math.round(t.value / max * 20)));
+        return '<div class="ad-bar ad-bar-h' + h + '" title="' + esc(t.date) + '"><i>' + t.value + '</i></div>';
+      }).join("") || '<p class="ad-empty">暂无数据</p>';
       var cats = s.by_category || [];
       var cmax = Math.max.apply(null, cats.map(function (c) { return c.value; }).concat([1]));
       $("adCats").innerHTML = cats.map(function (c) {
-        return '<div class="ad-cat"><span style="min-width:70px">' + esc(c.name || "未分类") + '</span><div class="bar"><i style="width:' + Math.round(c.value / cmax * 100) + '%"></i></div><b>' + c.value + '</b></div>';
-      }).join("") || '<p style="color:var(--ink-3)">暂无数据</p>';
+        var w = Math.max(0, Math.min(20, Math.round(c.value / cmax * 20)));
+        return '<div class="ad-cat"><span class="ad-cat-label">' + esc(c.name || "未分类") + '</span><div class="bar"><i class="ad-cat-w' + w + '"></i></div><b>' + c.value + '</b></div>';
+      }).join("") || '<p class="ad-empty">暂无数据</p>';
     }).catch(function (ex) { toast(ex.message); });
   }
 
@@ -159,14 +160,14 @@
     api("/feedbacks?" + params.toString()).then(function (items) {
       var tb = $("adRows");
       if (!items.length) {
-        tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--ink-3);padding:32px">暂无反馈</td></tr>';
+        tb.innerHTML = '<tr><td class="ad-empty-cell" colspan="5">暂无反馈</td></tr>';
         return;
       }
       tb.innerHTML = items.map(function (f) {
-        return '<tr data-id="' + f.id + '"><td style="font-family:ui-monospace,monospace">' + esc(f.public_id) +
+        return '<tr data-id="' + f.id + '"><td class="ad-mono">' + esc(f.public_id) +
           '</td><td>' + esc(f.title || "(无标题)") + '</td><td>' + esc(f.category || "—") +
           '</td><td><span class="st ' + esc(f.status) + '">' + esc(STATUS_LABELS[f.status] || f.status) +
-          '</span></td><td style="white-space:nowrap">' + esc(fmtTime(f.created_at)) + '</td></tr>';
+          '</span></td><td class="ad-nowrap">' + esc(fmtTime(f.created_at)) + '</td></tr>';
       }).join("");
     }).catch(function (ex) { toast(ex.message); });
   }
@@ -213,9 +214,5 @@
   });
 
   /* ---------- init ---------- */
-  if (token) {
-    api("/auth/me").then(function (me) { showApp(me); }).catch(function () { showLogin(); });
-  } else {
-    showLogin();
-  }
+  api("/auth/me").then(function (me) { showApp(me); }).catch(function () { showLogin(); });
 })();
