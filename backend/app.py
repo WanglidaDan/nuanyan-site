@@ -230,7 +230,7 @@ def issue_session(db, response, user_id):
     )
 
 
-def current_user(request):
+def current_user(request: Request):
     token = request.cookies.get(SESSION_COOKIE)
     if not token:
         raise HTTPException(401, "请先登录")
@@ -246,14 +246,14 @@ def current_user(request):
         return dict(row)
 
 
-def employee(request):
+def employee(request: Request):
     user = current_user(request)
     if user["role"] != "EMPLOYEE":
         raise HTTPException(403, "此操作仅限员工账号")
     return user
 
 
-def admin(request):
+def admin(request: Request):
     user = current_user(request)
     if user["role"] != "ADMIN":
         raise HTTPException(403, "无管理权限")
