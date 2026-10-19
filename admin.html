@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="暖言小站管理端：反馈办理、回复与数据总览。" />
+  <meta name="theme-color" content="#2F6B4F" />
+  <title>管理端｜暖言小站</title>
+  <link rel="stylesheet" href="/static/admin.css?v=20261019a" />
+</head>
+<body>
+  <!-- ============ login ============ -->
+  <div class="ad-login" id="adLogin">
+    <div class="ad-login-card">
+      <div class="ad-brand"><span class="ad-logo">暖</span><div><b>暖言小站</b><span>管理端</span></div></div>
+      <h1>欢迎回来</h1>
+      <p class="ad-sub">系统管理员与承办部门统一入口</p>
+      <form id="adLoginForm" autocomplete="off">
+        <label>账号<input type="text" id="adUser" autocomplete="username" required /></label>
+        <label>密码<input type="password" id="adPass" autocomplete="current-password" required /></label>
+        <p class="ad-err" id="adLoginErr" hidden></p>
+        <button type="submit" class="ad-btn primary" id="adLoginBtn">登录</button>
+      </form>
+      <a class="ad-back" href="/">← 返回暖言小站首页</a>
+    </div>
+  </div>
+
+  <!-- ============ app ============ -->
+  <div class="ad-app" id="adApp" hidden>
+    <aside class="ad-side">
+      <div class="ad-brand"><span class="ad-logo">暖</span><div><b>暖言小站</b><span>管理端</span></div></div>
+      <nav class="ad-nav">
+        <button type="button" data-view="dash" class="on">数据总览</button>
+        <button type="button" data-view="list">反馈办理</button>
+      </nav>
+      <div class="ad-me"><span id="adMeName">—</span><button type="button" id="adLogout">退出</button></div>
+    </aside>
+    <main class="ad-main">
+      <!-- dashboard -->
+      <section id="viewDash" class="ad-view">
+        <h2>数据总览</h2>
+        <div class="ad-stats" id="adStats"></div>
+        <div class="ad-cards">
+          <div class="ad-card"><h3>近 7 天趋势</h3><div class="ad-trend" id="adTrend"></div></div>
+          <div class="ad-card"><h3>分类分布</h3><div id="adCats"></div></div>
+        </div>
+      </section>
+      <!-- list -->
+      <section id="viewList" class="ad-view" hidden>
+        <h2>反馈办理</h2>
+        <div class="ad-filters">
+          <select id="fStatus"><option value="">全部状态</option></select>
+          <input type="search" id="fQ" placeholder="搜索编号 / 标题关键词" />
+          <button type="button" class="ad-btn" id="fSearch">筛选</button>
+        </div>
+        <div class="ad-table-wrap"><table class="ad-table">
+          <thead><tr><th>编号</th><th>标题</th><th>分类</th><th>状态</th><th>提交时间</th></tr></thead>
+          <tbody id="adRows"></tbody>
+        </table></div>
+      </section>
+      <!-- detail -->
+      <section id="viewDetail" class="ad-view" hidden>
+        <button type="button" class="ad-btn ghost" id="backToList">← 返回列表</button>
+        <div id="adDetail"></div>
+        <div class="ad-card"><h3>回复员工</h3>
+          <textarea id="adReplyText" rows="4" placeholder="写下给员工的回复（员工将在「我的反馈」中看到）"></textarea>
+          <div class="ad-row"><button type="button" class="ad-btn primary" id="adSendReply">发送回复</button></div>
+        </div>
+        <div class="ad-card"><h3>办理状态</h3>
+          <div class="ad-row">
+            <select id="adStatusSel"></select>
+            <button type="button" class="ad-btn" id="adSetStatus">更新状态</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="ad-toast" id="adToast" hidden></div>
+  <script src="/static/admin.js?v=20261019a"></script>
+</body>
+</html>
