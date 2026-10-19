@@ -2,24 +2,8 @@
       (function () {
         "use strict";
         var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        /* auth state lives here (not in the auth block below) because the write
-           page's deep-link call can run before that block during init.
-           It is persisted to localStorage: previously the state was a hardcoded
-           in-memory default, so every reload / webview re-render resurrected the
-           signed-in "test" session and logout looked like it did nothing.
-           First visit (no stored record) keeps the demo default: signed in as test. */
-        var AUTH_KEY = "nuanyan-auth-v1";
-        var authState = { loggedIn: true, user: "test" };
-        try {
-          var savedAuth = JSON.parse(localStorage.getItem(AUTH_KEY) || "null");
-          if (savedAuth && typeof savedAuth.loggedIn === "boolean" && typeof savedAuth.user === "string") {
-            authState.loggedIn = savedAuth.loggedIn;
-            authState.user = savedAuth.user || "test";
-          }
-        } catch (err) {}
-        function persistAuth() {
-          try { localStorage.setItem(AUTH_KEY, JSON.stringify(authState)); } catch (err) {}
-        }
+        /* Session state is restored from the server's HttpOnly cookie below. */
+        var authState = { loggedIn: false, user: "", username: "" };
         var pendingAfterLogin = null;
         var finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
         /* low-end devices (few cores / little memory / data-saver): the CSS
@@ -63,6 +47,26 @@
           toastEl.classList.add("show");
           clearTimeout(toastTimer);
           toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 2800);
+        }
+        function apiRequest(path, options) {
+          options = options || {};
+          var headers = { "Accept": "application/json" };
+          if (options.body) headers["Content-Type"] = "application/json";
+          return fetch(path, {
+            method: options.method || "GET",
+            credentials: "same-origin",
+            headers: headers,
+            body: options.body ? JSON.stringify(options.body) : undefined
+          }).then(function (response) {
+            return response.json().catch(function () { return {}; }).then(function (data) {
+              if (!response.ok) {
+                var detail = data && data.detail;
+                if (Array.isArray(detail)) detail = detail.map(function (item) { return item.msg; }).join("；");
+                throw new Error(detail || "请求失败，请稍后重试");
+              }
+              return data;
+            });
+          });
         }
         /* gentle haptics: phones only — navigator.vibrate is a no-op on desktop */
         function buzz(ms) {
@@ -226,15 +230,31 @@
           }
           requestAnimationFrame(frame);
         }
+        var statsReady = false;
+        var statsVisible = false;
+        function animateStats() {
+          if (!statsReady || !statsVisible) return;
+          document.querySelectorAll("#statsGrid .count").forEach(countUp);
+          statsIO.unobserve(document.getElementById("statsGrid"));
+        }
         var statsIO = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.querySelectorAll(".count").forEach(countUp);
-              statsIO.unobserve(entry.target);
-            }
+            if (entry.isIntersecting) { statsVisible = true; animateStats(); }
           });
         }, { threshold: 0.35 });
         statsIO.observe(document.getElementById("statsGrid"));
+        apiRequest("/api/v1/public/stats").then(function (stats) {
+          var values = [stats.total, stats.reply_rate, stats.avg_days];
+          document.querySelectorAll("#statsGrid .count").forEach(function (el, i) {
+            el.setAttribute("data-target", String(Number(values[i]) || 0));
+            el.textContent = "0";
+          });
+          document.getElementById("statsSource").textContent = "本月实时数据";
+          statsReady = true; animateStats();
+        }).catch(function () {
+          document.querySelectorAll("#statsGrid .count").forEach(function (el) { el.textContent = "—"; });
+          document.getElementById("statsSource").textContent = "统计暂不可用";
+        });
 
         /* ---------- dept selection (cards <-> chips) ---------- */
         /* nothing is pre-selected: step 1 must be a real choice, and choosing
@@ -303,17 +323,20 @@
         var submitBtn = document.getElementById("submitBtn");
         var submitLabel = submitBtn.querySelector(".btn-label");
         var plane = submitBtn.querySelector(".btn-plane");
-        var ticketSeq = 1;
         var submitting = false;
+        var submittedPublicId = null;
+        var submittedCreatedAt = null;
 
-        function pad(n) { return (n < 10 ? "0" : "") + n; }
         function openSuccess() {
           clearDraft();
-          var num = "NY-20261018-" + ("00" + ticketSeq).slice(-3);
-          ticketSeq += 1;
+          var num = submittedPublicId;
+          if (!num) return;
           document.getElementById("ticketNum").textContent = num;
           document.getElementById("ticketDept").textContent = selectedDept;
-          addMyFeedback(num);
+          document.getElementById("ticketCreated").textContent = formatFeedbackDateTime(submittedCreatedAt);
+          document.querySelector(".ic-status").textContent = "待受理";
+          submittedPublicId = null;
+          submittedCreatedAt = null;
           overlay.classList.add("open");
           overlay.setAttribute("aria-hidden", "false");
           syncHtmlBg();
@@ -461,13 +484,27 @@
         function runSubmit() {
           if (submitting) return;
           submitting = true;
-          sendActive = true;
-          buzz(20); /* confirm-submit thump */
           submitBtn.classList.add("loading");
-          submitLabel.textContent = "正在送达…";
-          plane.style.display = "none";
-          if (reduceMotion) { sendLater(finishSubmit, 60); return; }
-          sealAndSend();
+          submitLabel.textContent = "正在提交…";
+          apiRequest("/api/v1/feedbacks", {
+            method: "POST",
+            body: { department: selectedDept, content: textarea.value.trim() }
+          }).then(function (data) {
+            submittedPublicId = data.public_id;
+            submittedCreatedAt = data.created_at;
+            if (!submittedPublicId) throw new Error("服务器未返回建议编号，请联系管理员核对提交状态");
+            sendActive = true;
+            buzz(20);
+            plane.style.display = "none";
+            if (reduceMotion) { sendLater(finishSubmit, 60); return; }
+            sealAndSend();
+          }).catch(function (error) {
+            submitting = false;
+            sendActive = false;
+            restoreSubmitBtn();
+            cleanupFx();
+            toast(error.message || "提交失败，请稍后重试");
+          });
         }
         submitBtn.addEventListener("click", function () {
           var tval = textarea.value.trim();
@@ -570,26 +607,62 @@
 
         /* ---------- modals ---------- */
         var fbTimer = null;
-        /* feedback owned by the signed-in account: the demo account (test)
-           carries the four sample rows; any other account starts empty —
-           the designed empty state — and grows with real submissions */
-        var myFeedback = [];
-        function feedbackHasItems() {
-          return myFeedback.length > 0 || authState.user === "test";
+        var STATUS_COPY = {
+          PENDING_ACCEPTANCE: ["待受理", "recv"], ACCEPTED: ["已受理", "recv"],
+          VERIFYING: ["核实中", "doing"], PROCESSING: ["办理中", "doing"],
+          WAITING_EMPLOYEE: ["待补充", "doing"], WAITING_REVIEW: ["待审核", "doing"],
+          REPLIED: ["已回复", "done"], CLOSED: ["已办结", "done"],
+          REJECTED: ["已驳回", "done"], REOPENED: ["重新办理", "doing"]
+        };
+        function formatFeedbackDate(value) {
+          var date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "时间待更新";
+          return new Intl.DateTimeFormat("zh-CN", { month: "numeric", day: "numeric" }).format(date);
         }
-        function settleFeedback() {
+        function formatFeedbackDateTime(value) {
+          var date = new Date(value);
+          if (Number.isNaN(date.getTime())) return "时间待更新";
+          return new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).format(date);
+        }
+        function renderMyFeedback(items) {
+          var wrap = document.getElementById("fbMineItems");
           var skel = document.getElementById("fbSkel");
           var list = document.getElementById("fbList");
           var empty = document.getElementById("fbEmpty");
-          var demo = document.getElementById("fbDemoItems");
-          if (!skel || !list) return;
-          skel.classList.remove("show");
-          if (demo) demo.style.display = authState.user === "test" ? "" : "none";
-          var has = feedbackHasItems();
-          list.hidden = !has;
-          if (empty) empty.hidden = has;
+          if (!wrap || !list) return;
+          wrap.replaceChildren();
+          items.forEach(function (feedback) {
+            var item = document.createElement("div");
+            item.className = "fb-item";
+            var top = document.createElement("div"); top.className = "fb-top";
+            var id = document.createElement("span"); id.textContent = feedback.public_id;
+            var state = STATUS_COPY[feedback.status] || ["处理中", "doing"];
+            var chip = document.createElement("span"); chip.className = "status-chip " + state[1];
+            var dot = document.createElement("span"); dot.className = "sd"; dot.setAttribute("aria-hidden", "true");
+            chip.append(dot, document.createTextNode(state[0])); top.append(id, chip);
+            var title = document.createElement("div"); title.className = "fb-title"; title.textContent = feedback.title;
+            var meta = document.createElement("div"); meta.className = "fb-meta";
+            meta.textContent = feedback.department + " · " + formatFeedbackDate(feedback.created_at) + " 提交";
+            var detail = document.createElement("div"); detail.className = "fb-detail"; detail.hidden = true;
+            var body = document.createElement("p"); body.textContent = "建议内容：" + feedback.description; detail.appendChild(body);
+            (feedback.messages || []).forEach(function (message) {
+              var reply = document.createElement("p");
+              reply.textContent = (message.sender_type === "ADMIN" ? "平台回复：" : "补充说明：") + message.content;
+              detail.appendChild(reply);
+            });
+            item.append(top, title, meta, detail); wrap.appendChild(item);
+          });
+          if (skel) skel.classList.remove("show");
+          list.hidden = items.length === 0;
+          if (empty) empty.hidden = items.length !== 0;
         }
-        /* feedback detail: click to expand */
+        function settleFeedback() {
+          apiRequest("/api/v1/feedbacks/mine").then(renderMyFeedback).catch(function (error) {
+            var skel = document.getElementById("fbSkel");
+            if (skel) skel.classList.remove("show");
+            toast(error.message || "暂时无法读取反馈记录");
+          });
+        }
         document.getElementById("fbList").addEventListener("click", function (e) {
           var item = e.target.closest(".fb-item");
           if (!item) return;
@@ -608,26 +681,11 @@
           list.hidden = true;
           if (empty) empty.hidden = true;
           clearTimeout(fbTimer);
-          fbTimer = setTimeout(settleFeedback, reduceMotion ? 60 : 800);
-        }
-        function addMyFeedback(num) {
-          var raw = textarea.value.trim().replace(/\s+/g, " ");
-          var title = raw.length > 22 ? raw.slice(0, 22) + "…" : (raw || "一条新的建议");
-          myFeedback.unshift({ num: num, dept: selectedDept, title: title });
-          var wrap = document.getElementById("fbMineItems");
-          if (!wrap) return;
-          var item = document.createElement("div");
-          item.className = "fb-item";
-          item.innerHTML = '<div class="fb-top"><span></span><span class="status-chip recv"><span class="sd" aria-hidden="true"></span>已受理</span></div><div class="fb-title"></div><div class="fb-meta"></div>';
-          item.querySelector(".fb-top span").textContent = num;
-          item.querySelector(".fb-title").textContent = title;
-          item.querySelector(".fb-meta").textContent = selectedDept + " · 刚刚提交 · 已由承办部门受理";
-          wrap.insertBefore(item, wrap.firstChild);
+          fbTimer = setTimeout(settleFeedback, reduceMotion ? 60 : 300);
         }
         function resetMyFeedback() {
-          myFeedback = [];
           var wrap = document.getElementById("fbMineItems");
-          if (wrap) wrap.innerHTML = "";
+          if (wrap) wrap.replaceChildren();
         }
         var fbEmptyWrite = document.getElementById("fbEmptyWrite");
         if (fbEmptyWrite) fbEmptyWrite.addEventListener("click", function () {
@@ -897,26 +955,25 @@
 
         function applyAuthState() {
           document.body.classList.toggle("logged-out", !authState.loggedIn);
-          var mr = document.getElementById("menuRegister");
-          if (mr) mr.style.display = authState.loggedIn ? "none" : "";
+          document.body.classList.toggle("logged-in", authState.loggedIn);
           var gt = document.getElementById("greetingText");
-          var dispName = authState.user === "test" ? "林欣" : authState.user;
+          var dispName = authState.user || "";
           if (gt) gt.textContent = authState.loggedIn ? gText + "，" + dispName : "欢迎来到暖言小站";
           if (authState.loggedIn) {
-            var name = authState.user === "test" ? "林欣" : authState.user;
+            var name = authState.user;
             var un = document.querySelector(".user-chip .u-name");
             var av = document.querySelector(".user-chip .avatar");
             var ud = document.querySelector(".user-chip .u-dept");
             if (un) un.textContent = name;
             if (av) av.textContent = name.charAt(0);
-            if (ud) ud.textContent = authState.user === "test" ? "运营部 · 已登录" : "已登录";
+            if (ud) ud.textContent = "已登录";
           }
         }
         function authSuccess(account, msg) {
-          if (authState.user !== account) resetMyFeedback();
+          if (authState.username !== account.username) resetMyFeedback();
           authState.loggedIn = true;
-          authState.user = account;
-          persistAuth();
+          authState.username = account.username;
+          authState.user = account.name || account.username;
           applyAuthState();
           var f = pendingAfterLogin;
           pendingAfterLogin = null;
@@ -942,13 +999,14 @@
         function doLogout() {
           if (!authState.loggedIn) return;
           if (!confirm("确定要退出登录吗？未提交的草稿会被清除。")) return;
+          apiRequest("/api/v1/auth/logout", { method: "POST" }).catch(function () {});
           authState.loggedIn = false;
           authState.user = "";
+          authState.username = "";
           resetMyFeedback();
           try { localStorage.removeItem(DRAFT_KEY); } catch (err) {}
           var ta = document.getElementById("suggestText");
           if (ta) ta.value = "";
-          persistAuth();
           pendingAfterLogin = null;
           applyAuthState();
           mobileMenu.classList.remove("open");
@@ -998,18 +1056,11 @@
           var u = document.getElementById("loginUser").value.trim();
           var p = document.getElementById("loginPass").value;
           apClear(loginForm);
-          if (u === "test" && p === "test") {
-            var btn = document.getElementById("loginSubmit");
-            apLoading(btn, true, "登录中…");
-            setTimeout(function () { apLoading(btn, false, "登录"); authSuccess("test"); }, reduceMotion ? 60 : 750);
-          } else {
-            apError(loginForm, "账号或密码不正确", document.getElementById("loginPass"));
-          }
-        });
-        document.getElementById("quickLogin").addEventListener("click", function () {
-          document.getElementById("loginUser").value = "test";
-          document.getElementById("loginPass").value = "test";
-          if (loginForm.requestSubmit) loginForm.requestSubmit();
+          var btn = document.getElementById("loginSubmit");
+          apLoading(btn, true, "登录中…");
+          apiRequest("/api/v1/auth/login", { method: "POST", body: { username: u, password: p } })
+            .then(function (data) { apLoading(btn, false, "登录"); authSuccess(data.user, "登录成功"); })
+            .catch(function (error) { apLoading(btn, false, "登录"); apError(loginForm, error.message, document.getElementById("loginPass")); });
         });
 
         /* register */
@@ -1040,15 +1091,46 @@
           var p1 = regPass.value;
           var p2 = document.getElementById("regPass2").value;
           var em = document.getElementById("regEmail").value.trim();
+          var code = document.getElementById("regCode").value.trim();
           if (!/^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(u)) { apError(regForm, "账号需字母开头，4–32 位", document.getElementById("regUser")); return; }
-          if (p1.length < 6) { apError(regForm, "密码至少 6 位", regPass); return; }
+          if (p1.length < 12) { apError(regForm, "密码至少 12 位", regPass); return; }
           if (p1 !== p2) { apError(regForm, "两次输入的密码不一致", document.getElementById("regPass2")); return; }
-          if (!em) { apError(regForm, "请填写邮箱，用于找回密码", document.getElementById("regEmail")); return; }
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { apError(regForm, "邮箱格式不正确", document.getElementById("regEmail")); return; }
+          if (!/^\d{6}$/.test(code)) { apError(regForm, "请输入邮箱收到的 6 位验证码", document.getElementById("regCode")); return; }
           var btn = document.getElementById("regSubmit");
           apLoading(btn, true, "注册中…");
-          setTimeout(function () { apLoading(btn, false, "注册"); authSuccess(u, "注册成功，欢迎来到暖言小站"); }, reduceMotion ? 60 : 750);
+          apiRequest("/api/v1/auth/register", { method: "POST", body: { username: u, email: em, password: p1, verification_code: code } })
+            .then(function (data) { apLoading(btn, false, "注册"); authSuccess(data.user, "注册成功，欢迎来到暖言小站"); })
+            .catch(function (error) { apLoading(btn, false, "注册"); apError(regForm, error.message, document.getElementById("regCode")); });
         });
+        var regSendCode = document.getElementById("regSendCode");
+        var regCodeCountdown = 0;
+        regSendCode.addEventListener("click", function () {
+          if (regCodeCountdown > 0) return;
+          var username = document.getElementById("regUser").value.trim();
+          var email = document.getElementById("regEmail").value.trim();
+          if (!/^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(username)) { apError(regForm, "先填写有效账号", document.getElementById("regUser")); return; }
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { apError(regForm, "先填写有效邮箱", document.getElementById("regEmail")); return; }
+          regSendCode.disabled = true;
+          apiRequest("/api/v1/auth/email-verification/request", { method: "POST", body: { username: username, email: email } })
+            .then(function (data) {
+              toast(data.message || "如果邮箱可用，验证码已发送");
+              regCodeCountdown = 60;
+              regSendCode.textContent = "重新发送（60s）";
+              var tick = setInterval(function () {
+                regCodeCountdown--;
+                if (regCodeCountdown <= 0) {
+                  clearInterval(tick);
+                  regSendCode.disabled = false;
+                  regSendCode.textContent = "发送验证码";
+                } else regSendCode.textContent = "重新发送（" + regCodeCountdown + "s）";
+              }, 1000);
+            })
+            .catch(function (error) { toast(error.message); regSendCode.disabled = false; });
+        });
+        apiRequest("/api/v1/auth/me").then(function (data) {
+          authState.loggedIn = true; authState.username = data.user.username; authState.user = data.user.name || data.user.username; applyAuthState();
+        }).catch(function () { authState.loggedIn = false; authState.username = ""; authState.user = ""; applyAuthState(); });
 
         /* forgot password */
         var fgForm = document.getElementById("forgotPanel");
@@ -1062,16 +1144,17 @@
           var em = document.getElementById("fgEmail").value.trim();
           if (!u) { apError(fgForm, "先填写账号", document.getElementById("fgUser")); return; }
           if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { apError(fgForm, "邮箱格式不正确", document.getElementById("fgEmail")); return; }
-          fgStep2.classList.add("on");
-          toast("验证码已发送（演示码：123456）");
-          fgLeft = 60;
           fgSend.disabled = true;
-          fgSend.textContent = "重新发送（" + fgLeft + "s）";
-          var fgTimer = setInterval(function () {
-            fgLeft--;
-            if (fgLeft <= 0) { clearInterval(fgTimer); fgSend.disabled = false; fgSend.textContent = "重新发送验证码"; }
-            else fgSend.textContent = "重新发送（" + fgLeft + "s）";
-          }, 1000);
+          apiRequest("/api/v1/auth/password-reset/request", { method: "POST", body: { username: u, email: em } })
+            .then(function (data) {
+              fgStep2.classList.add("on"); toast(data.message || "如果账号与邮箱匹配，验证码已发送");
+              fgLeft = 60; fgSend.textContent = "重新发送（" + fgLeft + "s）";
+              var fgTimer = setInterval(function () {
+                fgLeft--;
+                if (fgLeft <= 0) { clearInterval(fgTimer); fgSend.disabled = false; fgSend.textContent = "重新发送验证码"; }
+                else fgSend.textContent = "重新发送（" + fgLeft + "s）";
+              }, 1000);
+            }).catch(function (error) { fgSend.disabled = false; apError(fgForm, error.message, document.getElementById("fgEmail")); });
         });
         fgForm.addEventListener("submit", function (e) {
           e.preventDefault();
@@ -1080,16 +1163,17 @@
           var code = document.getElementById("fgCode").value.trim();
           var np = document.getElementById("fgPass").value;
           if (!/^\d{6}$/.test(code)) { apError(fgForm, "请输入 6 位验证码", document.getElementById("fgCode")); return; }
-          if (code !== "123456") { apError(fgForm, "验证码不正确，请核对后重新输入", document.getElementById("fgCode")); return; }
-          if (np.length < 6) { apError(fgForm, "新密码至少 6 位", document.getElementById("fgPass")); return; }
+          if (np.length < 12) { apError(fgForm, "新密码至少 12 位", document.getElementById("fgPass")); return; }
           var btn = document.getElementById("fgSubmit");
           apLoading(btn, true, "提交中…");
-          setTimeout(function () {
+          apiRequest("/api/v1/auth/password-reset/confirm", { method: "POST", body: {
+            username: document.getElementById("fgUser").value.trim(), email: document.getElementById("fgEmail").value.trim(),
+            code: code, password: np
+          } }).then(function () {
             apLoading(btn, false, "完成重置");
             document.getElementById("loginUser").value = document.getElementById("fgUser").value.trim();
-            goPanel("login");
-            toast("密码已重置，请重新登录");
-          }, reduceMotion ? 60 : 700);
+            goPanel("login"); toast("密码已更新，请重新登录");
+          }).catch(function (error) { apLoading(btn, false, "完成重置"); apError(fgForm, error.message, document.getElementById("fgCode")); });
         });
 
         /* ---------- chat card: static-first, playback as enhancement ----------
