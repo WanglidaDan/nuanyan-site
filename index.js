@@ -299,7 +299,7 @@ function renderNotifs() {
   el.innerHTML = notifItems.length ? notifItems.map(n => `<button type="button" class="bell-item${n.is_read ? '' : ' unread'}" data-pub="${escHtml(n.public_id || '')}" data-nid="${n.id}"><span class="bell-dot" aria-hidden="true"></span><span class="bell-main"><b>${escHtml(n.title || '反馈有新进展')}</b><span>${escHtml(n.content || '')}</span><time>${escHtml(n.public_id || '')} · ${fmtTime(n.created_at)}</time></span></button>`).join('')
     : '<p class="bell-empty">暂时没有通知，反馈有新进展会第一时间告诉你。</p>';
 }
-$('#bellBtn').onclick = e => { e.stopPropagation(); const m = $('#bellMenu'); const o = m.hidden; closeBell(); closeMenu(); if (o) { m.hidden = false; $('#bellBtn').setAttribute('aria-expanded', true); loadNotifs(true); } };
+$('#bellBtn').onclick = e => { e.stopPropagation(); const m = $('#bellMenu'); const o = m.hidden; closeBell(); closeMenu(); if (o) { m.hidden = false; $('#bellBtn').setAttribute('aria-expanded', true); loadNotifs(true); pushRefresh(); } };
 document.addEventListener('click', e => { if (!e.target.closest('.bell-wrap')) closeBell(); });
 $('#bellAll').onclick = async () => {
   try { await apiCall('/notifications/read-all', 'POST'); } catch (e) {}
@@ -319,6 +319,49 @@ $('#bellList').addEventListener('click', async e => {
   if (cur === '/mine') { loadMine().then(() => openDrawer(pub)); }
   else location.hash = '#/mine?open=' + encodeURIComponent(pub);
 });
+
+/* ===== 手机推送（Web Push） ===== */
+const PUSH_OK = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+function b64ToU8(b64) { const p = '='.repeat((4 - b64.length % 4) % 4); const raw = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/')); const a = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) a[i] = raw.charCodeAt(i); return a; }
+async function pushRefresh() {
+  const btn = $('#pushBtn'), hint = $('#pushHint');
+  if (!btn) return;
+  if (!PUSH_OK) { btn.hidden = true; if (hint) hint.textContent = '当前浏览器不支持推送'; return; }
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone()) { btn.disabled = true; btn.textContent = '开启'; if (hint) hint.textContent = '请先把本站添加到主屏幕，再从桌面图标打开来开启'; return; }
+  if (Notification.permission === 'denied') { btn.disabled = true; btn.textContent = '开启'; if (hint) hint.textContent = '通知已被系统拒绝，请在浏览器设置中允许'; return; }
+  btn.disabled = false;
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = reg ? await reg.pushManager.getSubscription() : null;
+    btn.textContent = sub ? '已开启' : '开启';
+    btn.classList.toggle('on', !!sub);
+    if (hint) hint.textContent = sub ? '反馈有进展会推送到这台手机' : '开启后，反馈有进展第一时间推送';
+  } catch (e) { btn.textContent = '开启'; }
+}
+const pushBtnEl = $('#pushBtn');
+if (pushBtnEl) pushBtnEl.onclick = async () => {
+  if (!PUSH_OK) return;
+  pushBtnEl.disabled = true;
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    const existing = await reg.pushManager.getSubscription();
+    if (existing) {
+      try { await apiCall('/push/unsubscribe', 'POST', { endpoint: existing.endpoint }); } catch (e) {}
+      await existing.unsubscribe();
+      toast('手机推送已关闭');
+    } else {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { toast('没有拿到通知权限，可在系统设置里允许'); pushRefresh(); return; }
+      const keyRes = await apiCall('/push/public-key');
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(keyRes.public_key) });
+      const sj = sub.toJSON();
+      await apiCall('/push/subscribe', 'POST', { endpoint: sj.endpoint, keys: { p256dh: sj.keys.p256dh, auth: sj.keys.auth } });
+      toast('手机推送已开启');
+    }
+  } catch (e) { toast('开启失败，请稍后再试'); }
+  pushRefresh();
+};
 
 /* write flow */
 let step = 1; const draft = { topic: null, dept: null };
