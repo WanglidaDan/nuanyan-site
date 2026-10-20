@@ -300,7 +300,7 @@ function renderNotifs() {
     : '<p class="bell-empty">暂时没有通知，反馈有新进展会第一时间告诉你。</p>';
 }
 $('#bellBtn').onclick = e => { e.stopPropagation(); const m = $('#bellMenu'); const o = m.hidden; closeBell(); closeMenu(); if (o) { m.hidden = false; $('#bellBtn').setAttribute('aria-expanded', true); loadNotifs(true); pushRefresh(); } };
-document.addEventListener('click', e => { if (!e.target.closest('.bell-wrap')) closeBell(); });
+document.addEventListener('click', e => { if (!e.target.closest('.bell-wrap, .bell-menu')) closeBell(); });
 $('#bellAll').onclick = async () => {
   try { await apiCall('/notifications/read-all', 'POST'); } catch (e) {}
   notifItems.forEach(n => { n.is_read = 1; }); notifUnread = 0; updateBell(); renderNotifs();
