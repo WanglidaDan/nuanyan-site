@@ -388,6 +388,17 @@
         '<div class="ad-row"><button type="button" class="ad-btn primary" data-act="deptReply">提交回复（送审核）</button></div></div>';
     }
 
+    /* —— 申请转派（部门办理人） —— */
+    if (ME && ME.role === "HANDLER" && !closed) {
+      H += '<div class="ad-card"><h3>申请转派</h3>' +
+        '<p class="op-hint">如果这个问题不属于本部门负责，可以在这里申请转派。提交后管理员会收到通知，由管理员重新确认承办部门。</p>' +
+        '<textarea id="trReason" rows="2" placeholder="写明申请转派的理由（至少 3 个字）"></textarea>' +
+        '<div class="ad-row"><label class="op-lab">建议转给 <select id="trDept"><option value="">不指定</option>' +
+        DEPTS.filter(function (d) { return String(d.id) !== String(ME.department_id); }).map(function (d) { return '<option value="' + d.id + '">' + esc(d.name) + '</option>'; }).join("") +
+        '</select></label>' +
+        '<button type="button" class="ad-btn" data-act="transferReq">提交转派申请</button></div></div>';
+    }
+
     /* —— 往来记录 —— */
     var msgs = f.messages || [];
     if (msgs.length) {
@@ -508,6 +519,13 @@
       if (!note2) { toast("请先写下备注"); return; }
       api("/feedbacks/" + id + "/internal-notes", { method: "POST", body: { content: note2 } })
         .then(function () { done("备注已添加"); }).catch(fail);
+    } else if (act === "transferReq") {
+      var reason = $("trReason").value.trim();
+      if (reason.length < 3) { toast("转派理由至少写 3 个字"); return; }
+      if (!confirm("提交后管理员会收到通知，并决定是否转派，确定提交吗？")) return;
+      var sug = $("trDept").value;
+      api("/feedbacks/" + id + "/transfer-request", { method: "POST", body: { content: reason, suggested_department_id: sug ? Number(sug) : null } })
+        .then(function () { done("转派申请已提交，等待管理员处理"); }).catch(fail);
     } else if (act === "setStatus") {
       var st = $("adStatusSel").value, nt = $("adStatusNote").value.trim();
       if (!confirm("确定把状态改为「" + (STATUS_LABELS[st] || st) + "」吗？")) return;
