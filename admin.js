@@ -69,11 +69,10 @@
         return data;
       });
     }).then(function (data) {
-      token = data.token || data.access_token;
+      token = data.access_token;
+      if (!token) throw new Error("登录返回异常，请重试");
       try { localStorage.setItem(TOKEN_KEY, token); } catch (e) {}
-      return api("/auth/me");
-    }).then(function (me) {
-      showApp(me);
+      showApp(data.user);
       toast("登录成功");
     }).catch(function (ex) {
       err.textContent = ex.message; err.hidden = false;
@@ -108,7 +107,7 @@
       var stats = [
         ["反馈总数", s.total, ""], ["待受理", s.pending, s.pending > 0 ? "warn" : ""],
         ["办理中", s.processing, ""], ["即将超期", s.due_soon, s.due_soon > 0 ? "warn" : ""],
-        ["已超期", s.overdue, s.overdue > 0 ? "warn" : ""], ["本月办结", s.closed_month, ""]
+        ["已超期", s.overdue, s.overdue > 0 ? "warn" : ""], ["本月办结", s.closed_month, ""], ["员工满意度", s.satisfaction ? s.satisfaction + " 分" : "—", ""]
       ];
       $("adStats").innerHTML = stats.map(function (x) {
         return '<div class="ad-stat ' + x[2] + '"><b>' + x[1] + '</b><span>' + x[0] + '</span></div>';
@@ -164,7 +163,7 @@
       }
       tb.innerHTML = items.map(function (f) {
         return '<tr data-id="' + f.id + '"><td style="font-family:ui-monospace,monospace">' + esc(f.public_id) +
-          '</td><td>' + esc(f.title || "(无标题)") + '</td><td>' + esc(f.category || "—") +
+          '</td><td>' + esc(f.title || "(无标题)") + (f.unread_count > 0 ? '<i class="dot" title="有未读留言"></i>' : '') + '</td><td>' + esc(f.category || "—") +
           '</td><td><span class="st ' + esc(f.status) + '">' + esc(STATUS_LABELS[f.status] || f.status) +
           '</span></td><td style="white-space:nowrap">' + esc(fmtTime(f.created_at)) + '</td></tr>';
       }).join("");
@@ -184,7 +183,7 @@
       statusSel2.value = f.status;
       var msgs = (f.messages || []).map(function (m) {
         var who = m.sender_type === "ADMIN" ? "管理端回复" : (m.sender_type === "DEPARTMENT" ? "承办部门" : "员工");
-        return '<div class="ad-msg"><div class="who">' + esc(who) + ' · ' + esc(fmtTime(m.created_at)) + '</div><p>' + esc(m.content) + '</p></div>';
+        return '<div class="ad-msg ' + (m.sender_type === "EMPLOYEE" ? "emp" : "adm") + '"><div class="who">' + esc(who) + ' · ' + esc(fmtTime(m.created_at)) + '</div><p>' + esc(m.content) + '</p></div>';
       }).join("");
       $("adDetail").innerHTML =
         '<div class="ad-detail-head"><span class="st ' + esc(f.status) + '">' + esc(STATUS_LABELS[f.status] || f.status) + '</span>' +
