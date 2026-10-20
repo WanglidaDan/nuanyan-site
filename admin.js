@@ -67,6 +67,7 @@
     ME = me || ME;
     loginView.hidden = true; appView.hidden = false;
     $("adMeName").textContent = (ME && ME.name) || "管理员";
+    $("navAi").hidden = !(ME && ME.role === "SYSTEM_ADMIN");
     loadDashboard();
     refreshBadge();
   }
@@ -107,9 +108,20 @@
   $("adLogout").addEventListener("click", function () {
     if (confirm("确定退出管理端吗？")) doLogout();
   });
+  $("aiSave").addEventListener("click", function () {
+    api("/ai/config", { method: "POST", body: { api_key: $("aiKey").value.trim(), model: $("aiModel").value.trim(), base: $("aiBase").value.trim() } })
+      .then(function () { toast("AI 设置已保存"); loadAiConfig(); })
+      .catch(function (ex) { toast(ex.message); });
+  });
+  $("aiClear").addEventListener("click", function () {
+    if (!confirm("清除密钥后 AI 功能将停用，确定吗？")) return;
+    api("/ai/config", { method: "POST", body: { api_key: "", clear_key: true } })
+      .then(function () { toast("密钥已清除"); loadAiConfig(); })
+      .catch(function (ex) { toast(ex.message); });
+  });
 
   /* ---------- 视图切换 ---------- */
-  var views = { dash: $("viewDash"), list: $("viewList"), detail: $("viewDetail"), notif: $("viewNotif") };
+  var views = { dash: $("viewDash"), list: $("viewList"), detail: $("viewDetail"), notif: $("viewNotif"), ai: $("viewAi") };
   function showView(name) {
     Object.keys(views).forEach(function (k) { views[k].hidden = k !== name; });
     document.querySelectorAll(".ad-nav button").forEach(function (b) {
@@ -118,6 +130,7 @@
     if (name === "list") loadList();
     if (name === "dash") loadDashboard();
     if (name === "notif") loadNotifs();
+    if (name === "ai") loadAiConfig();
     window.scrollTo(0, 0);
   }
   document.querySelector(".ad-nav").addEventListener("click", function (e) {
@@ -329,8 +342,14 @@
 
     var H = "";
 
+    /* —— AI 摘要 —— */
+    H += '<div class="ad-card"><h3>AI 摘要</h3><div id="aiSumBox"><button type="button" class="ad-btn" data-act="aiSummary">生成摘要</button></div></div>';
+
     /* —— 办理操作 —— */
     var ops = "";
+    if (ME.role === "SYSTEM_ADMIN") {
+      ops += '<div class="op-block"><p class="op-t">AI 分派建议</p><div id="aiSugBox"><button type="button" class="ad-btn" data-act="aiSuggest">让 AI 建议承办部门</button></div></div>';
+    }
     if (isAdmin && f.status === "PENDING_ACCEPTANCE") {
       ops += '<div class="op-block"><button type="button" class="ad-btn primary op-main" data-act="accept">受理这条反馈</button>' +
         '<p class="op-hint">受理后进入待分派；也可以直接在下方确认承办部门，一步进入办理中。</p></div>';
@@ -373,7 +392,8 @@
         if (r.status === "RETURNED" && r.review_note) s += '<p class="ad-rep-note">退回意见（' + esc(r.reviewer_name || "管理员") + '）：' + esc(r.review_note) + '</p>';
         if (r.status === "PENDING" && isAdmin) {
           s += '<div class="ad-row"><button type="button" class="ad-btn primary rep-btn" data-act="approve" data-rid="' + r.id + '">审核通过，发给员工</button>' +
-            '<button type="button" class="ad-btn" data-act="returnToggle" data-rid="' + r.id + '">退回修改</button></div>' +
+            '<button type="button" class="ad-btn" data-act="returnToggle" data-rid="' + r.id + '">退回修改</button>' +
+            '<button type="button" class="ad-btn" data-act="aiReview" data-rid="' + r.id + '">AI 审稿</button></div><div id="aiRev' + r.id + '"></div>' +
             '<div class="ret-box" id="retBox' + r.id + '" hidden><textarea id="retNote' + r.id + '" rows="2" placeholder="写明退回原因（至少 3 个字），部门会看到这条意见"></textarea>' +
             '<div class="ad-row"><button type="button" class="ad-btn" data-act="returnSend" data-rid="' + r.id + '">确认退回</button></div></div>';
         }
@@ -385,7 +405,7 @@
     if (ME && ME.role === "HANDLER" && ["PROCESSING", "WAITING_EMPLOYEE", "WAITING_REVIEW", "REOPENED"].indexOf(f.status) >= 0) {
       H += '<div class="ad-card"><h3>提交本部门回复</h3>' +
         '<textarea id="deptReplyText" rows="4" placeholder="写下本部门的办理回复，提交后由管理员审核，审核通过才会发给员工"></textarea>' +
-        '<div class="ad-row"><button type="button" class="ad-btn primary" data-act="deptReply">提交回复（送审核）</button></div></div>';
+        '<div class="ad-row"><button type="button" class="ad-btn" data-act="aiDraft" data-tgt="deptReplyText">AI 起草</button><button type="button" class="ad-btn primary" data-act="deptReply">提交回复（送审核）</button></div></div>';
     }
 
     /* —— 申请转派（部门办理人） —— */
@@ -415,7 +435,7 @@
     if (isAdmin && !closed) {
       H += '<div class="ad-card"><h3>管理员直接回复</h3>' +
         '<textarea id="adReplyText" rows="4" placeholder="由管理员直接回复员工（发送后将由你接管办理，状态变为「已回复」）"></textarea>' +
-        '<div class="ad-row"><button type="button" class="ad-btn primary" data-act="sendReply">发送回复</button></div></div>';
+        '<div class="ad-row"><button type="button" class="ad-btn" data-act="aiDraft" data-tgt="adReplyText">AI 起草</button><button type="button" class="ad-btn primary" data-act="sendReply">发送回复</button></div></div>';
     }
 
     /* —— 内部备注 —— */
@@ -460,6 +480,66 @@
     $("adFlow").innerHTML = H;
   }
 
+  /* ---------- AI 辅助 ---------- */
+  function aiBusy(btn, on) {
+    if (!btn) return;
+    btn.disabled = on;
+    if (on) { btn.dataset.t = btn.textContent; btn.textContent = "AI 思考中…"; }
+    else if (btn.dataset.t) { btn.textContent = btn.dataset.t; }
+  }
+  function aiRun(act, btn, id, fail) {
+    if (act === "aiDraft") {
+      var ta = $(btn.getAttribute("data-tgt"));
+      if (!ta) return;
+      if (ta.value.trim() && !confirm("输入框里已有内容，AI 草稿会覆盖它，继续吗？")) return;
+      aiBusy(btn, true);
+      api("/ai/draft-reply", { method: "POST", body: { feedback_id: id, instruction: null } })
+        .then(function (r) { ta.value = r.draft || ""; ta.focus(); toast("草稿已生成，请修改后再发送"); })
+        .catch(fail).then(function () { aiBusy(btn, false); });
+      return;
+    }
+    if (act === "aiReview") {
+      var rid = btn.getAttribute("data-rid"), box = $("aiRev" + rid);
+      aiBusy(btn, true);
+      api("/ai/review-reply", { method: "POST", body: { feedback_id: id, reply_id: Number(rid) } })
+        .then(function (r) {
+          var ok = r.verdict === "approve";
+          box.innerHTML = '<div class="ai-out"><span class="ai-badge ' + (ok ? "ok" : "no") + '">' + (ok ? "建议通过" : "建议退回") + '</span> ' +
+            esc(r.comment || "") +
+            (r.points && r.points.length ? '<ul class="ai-points">' + r.points.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul>" : "") + "</div>";
+        })
+        .catch(fail).then(function () { aiBusy(btn, false); });
+      return;
+    }
+    if (act === "aiSuggest") {
+      var sbox = $("aiSugBox");
+      aiBusy(btn, true);
+      api("/ai/suggest-assignment", { method: "POST", body: { feedback_id: id } })
+        .then(function (r) {
+          window._aiSug = r;
+          sbox.innerHTML = '<div class="ai-out"><div>' + r.department_names.map(function (n) { return '<span class="ai-chip">' + esc(n) + "</span>"; }).join("") +
+            '<span class="ai-chip alt">' + esc(PRI_LABEL[r.priority] || r.priority) + "</span></div>" +
+            '<p class="ai-reason">' + esc(r.reason || "") + '</p>' +
+            '<button type="button" class="ad-btn" data-act="aiAdopt">采纳建议（填入下方确认表单）</button></div>';
+        })
+        .catch(fail).then(function () { aiBusy(btn, false); });
+      return;
+    }
+    var mbox = $("aiSumBox");
+    aiBusy(btn, true);
+    api("/ai/summarize", { method: "POST", body: { feedback_id: id } })
+      .then(function (r) { mbox.innerHTML = '<div class="ai-out">' + esc(r.summary || "").replace(/\n/g, "<br>") + "</div>"; })
+      .catch(fail).then(function () { aiBusy(btn, false); });
+  }
+  function loadAiConfig() {
+    api("/ai/config").then(function (c) {
+      $("aiBase").value = c.base || "";
+      $("aiModel").value = c.model || "";
+      $("aiKey").value = "";
+      $("aiState").textContent = c.configured ? ("已配置（密钥尾号 " + (c.key_hint || "") + "）") : "尚未配置密钥，AI 功能暂不可用";
+    }).catch(function (e) { toast(e.message); });
+  }
+
   /* 详情页动作（事件委托） */
   $("adFlow").addEventListener("change", function (e) {
     if (e.target.id === "asDept") {
@@ -472,7 +552,18 @@
     var act = b.getAttribute("data-act"), id = currentId;
     function done(msg) { toast(msg); openDetail(id); }
     function fail(ex) { toast(ex.message); }
-    if (act === "accept") {
+    if (act === "aiSummary" || act === "aiSuggest" || act === "aiReview" || act === "aiDraft") {
+      aiRun(act, b, id, fail);
+    } else if (act === "aiAdopt") {
+      if (!window._aiSug) return;
+      if (!$("cfPri")) { toast("当前状态不能确认部门，可参考 AI 建议手动处理"); return; }
+      Array.prototype.forEach.call(document.querySelectorAll(".cf-dept"), function (c) {
+        c.checked = window._aiSug.department_ids.indexOf(Number(c.value)) >= 0;
+      });
+      $("cfPri").value = window._aiSug.priority;
+      toast("已按 AI 建议填好，请核对后点「确认承办部门」");
+      $("cfPri").scrollIntoView({ block: "center", behavior: "smooth" });
+    } else if (act === "accept") {
       if (!confirm("确认受理这条反馈吗？")) return;
       api("/feedbacks/" + id + "/accept", { method: "POST" }).then(function () { done("已受理"); }).catch(fail);
     } else if (act === "confirmDepts") {

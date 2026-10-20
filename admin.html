@@ -6,7 +6,7 @@
   <meta name="description" content="暖言小站管理端：反馈办理、回复与数据总览。" />
   <meta name="theme-color" content="#1B3128" />
   <title>管理端｜暖言小站</title>
-  <link rel="stylesheet" href="/static/admin.css?v=20261020d" />
+  <link rel="stylesheet" href="/static/admin.css?v=20261020g" />
 </head>
 <body>
   <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="mark" viewBox="0 0 40 40"><path d="M20 4C10.6 4 4 10.3 4 18.4c0 4.6 2.2 8.6 5.7 11.2L8.4 36l6.6-3.5c1.6.4 3.2.6 5 .6 9.4 0 16-6.3 16-14.7S29.4 4 20 4z" fill="currentColor"/><path d="M14 23c4-1 8-5 10-11 1 4 0 9-4 12-2 1.5-4 1.5-6-1z" fill="#F7F3EA"/></symbol></defs></svg>
@@ -34,6 +34,7 @@
         <button type="button" data-view="dash" class="on">数据总览</button>
         <button type="button" data-view="list">反馈办理</button>
         <button type="button" data-view="notif">通知 <span class="ad-badge" id="adNotifBadge" hidden>0</span></button>
+        <button type="button" data-view="ai" id="navAi" hidden>AI 设置</button>
       </nav>
       <div class="ad-me"><span id="adMeName">—</span><button type="button" id="adLogout">退出</button></div>
     </aside>
@@ -73,9 +74,28 @@
         <div class="ad-notif-bar"><button type="button" class="ad-btn" id="notifReadAll">全部标为已读</button></div>
         <div id="adNotifs"></div>
       </section>
+      <!-- ai settings -->
+      <section id="viewAi" class="ad-view" hidden>
+        <h2>AI 设置</h2>
+        <div class="ad-card">
+          <h3>大模型服务</h3>
+          <p class="op-hint">填入大模型服务的 API 密钥并保存后，管理端的 AI 分派建议、AI 起草、AI 审稿、AI 摘要即可使用。密钥只保存在服务器上，不会显示出来。</p>
+          <label class="cfg-lab">服务地址<input type="text" id="aiBase" placeholder="https://…" /></label>
+          <label class="cfg-lab">模型名称<input type="text" id="aiModel" placeholder="deepseek-chat" /></label>
+          <label class="cfg-lab">API 密钥<input type="password" id="aiKey" placeholder="粘贴密钥；留空表示不修改" autocomplete="off" /></label>
+          <div class="ad-row"><button type="button" class="ad-btn primary cfg-btn" id="aiSave">保存设置</button><button type="button" class="ad-btn" id="aiClear">清除密钥</button><span class="op-hint inline" id="aiState"></span></div>
+        </div>
+        <div class="ad-card">
+          <h3>AI 能做什么</h3>
+          <p class="op-hint">智能分派建议：在反馈详情的「办理操作」里，AI 按内容建议承办部门和优先级，点「采纳」自动填好，管理员核对后确认。</p>
+          <p class="op-hint">AI 起草：在写回复时点「AI 起草」，按公文口吻生成草稿，改好再发送。</p>
+          <p class="op-hint">AI 审稿：部门回复待审核时，AI 先给出「建议通过 / 建议退回」和理由，最终仍由管理员决定。</p>
+          <p class="op-hint">AI 摘要：反馈详情顶部可生成三行摘要，诉求、进展、待办一目了然。</p>
+        </div>
+      </section>
     </main>
   </div>
   <div class="ad-toast" id="adToast" hidden></div>
-  <script src="/static/admin.js?v=20261020e"></script>
+  <script src="/static/admin.js?v=20261020g"></script>
 </body>
 </html>

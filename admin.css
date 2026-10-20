@@ -238,3 +238,16 @@ button{font-family:inherit}
   .ad-ditem .tt{order:3;flex-basis:100%;white-space:normal}
   .ad-ditem .st{margin-left:auto}
 }
+
+/* —— AI 设置与 AI 输出 —— */
+.cfg-lab{display:block;font-size:13px;color:var(--ink-2);margin-bottom:14px}
+.cfg-lab input{display:block;width:100%;max-width:520px;margin-top:6px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:var(--ink)}
+.ai-out{margin-top:12px;background:#F5EFDB;border:1px solid #E4D6AC;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.7;color:var(--ink)}
+.ai-out .ai-reason{margin:8px 0 10px}
+.ai-badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;margin-right:6px}
+.ai-badge.ok{background:#DCEFE2;color:var(--green)}
+.ai-badge.no{background:#F9E3E0;color:var(--red)}
+.ai-chip{display:inline-block;background:var(--green);color:#F3E9C8;border-radius:999px;padding:2px 10px;font-size:12.5px;margin:0 6px 4px 0}
+.ai-chip.alt{background:var(--gold-2)}
+.ai-points{margin:8px 0 0;padding-left:18px}
+.ai-points li{margin:2px 0}
