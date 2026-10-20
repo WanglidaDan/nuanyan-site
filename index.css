@@ -135,7 +135,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .steps li.cur{color:var(--ink);font-weight:600}.steps li.cur .dot{background:var(--green);border-color:var(--green);color:var(--cream);transform:scale(1.08)}
 .steps li.done{color:var(--green)}.steps li.done .dot{background:var(--green-soft);border-color:var(--green-soft);color:var(--green)}
 .panel{background:var(--paper);border:1px solid var(--line);border-radius:28px;box-shadow:var(--sh-2);overflow:hidden}
-.stage{padding:56px 64px 40px;animation:stageIn .55s var(--ease)}
+.stage{padding:56px 64px 40px;animation:stageIn .38s var(--ease)}
 .stage.back-anim{animation-name:stageBack}
 @keyframes stageIn{from{opacity:0;transform:translateX(24px)}}
 @keyframes stageBack{from{opacity:0;transform:translateX(-24px)}}
@@ -727,3 +727,43 @@ body.booting{overflow:hidden}
   .rdots span{width:6px;height:6px;border-radius:99px;background:var(--line-2);transition:all .3s}
   .rdots span.on{width:18px;background:var(--green)}
 }
+
+/* —— 2026-10-20 晚：站内通知铃铛 + 动画小项 —— */
+.bell-wrap{position:relative;display:inline-flex;margin-right:8px;vertical-align:middle}
+.bell-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:var(--paper);color:var(--green);cursor:pointer;padding:0}
+.bell-btn[hidden]{display:none}
+.bell-btn .ic{width:19px;height:19px}
+.bell-badge{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:#C0532F;color:#FFF7EA;font-size:10.5px;font-weight:700;line-height:17px;text-align:center;border:2px solid #F7F3EA;box-sizing:content-box}
+.bell-badge[hidden]{display:none}
+.bell-menu{width:min(352px,calc(100vw - 24px));padding:0;overflow:hidden;text-align:left}
+.bell-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px}
+.bell-head b{font-family:var(--serif);font-size:16px;color:var(--ink)}
+.bell-all{border:0;background:none;color:var(--green-2);font-size:13px;font-weight:600;cursor:pointer;padding:4px 2px;font-family:inherit}
+.bell-list{display:block;max-height:min(420px,62vh);overflow-y:auto;padding:0 6px 6px}
+.bell-item{display:flex;gap:10px;width:100%;text-align:left;padding:11px 10px;border:0;border-radius:12px;background:none;cursor:pointer;font:inherit;box-sizing:border-box}
+.bell-item:hover{background:var(--cream)}
+.bell-item .bell-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:7px;background:transparent}
+.bell-item.unread{background:var(--apricot-soft)}
+.bell-item.unread .bell-dot{background:#C0532F}
+.bell-item.unread:hover{background:#F6E3CB}
+.bell-main{display:flex;flex-direction:column;gap:1px;min-width:0}
+.bell-main b{font-size:14px;color:var(--ink);font-weight:600}
+.bell-main span{font-size:13px;color:var(--muted);line-height:1.45}
+.bell-main time{font-size:12px;color:var(--muted);opacity:.75;margin-top:2px}
+.bell-empty{display:block;padding:18px 16px 22px;font-size:13.5px;color:var(--muted);text-align:center}
+/* 时间轴：当前节点呼吸 + 连线生长 + 状态标淡入 */
+.tl li.cur .n{animation:curPulse 1.2s ease-in-out infinite}
+@keyframes curPulse{0%,100%{box-shadow:0 0 0 4px rgba(232,168,124,.14)}50%{box-shadow:0 0 0 8px rgba(232,168,124,.30)}}
+.tl li::before{transform-origin:top;animation:tlDraw .45s var(--ease) both}
+.tl li:nth-child(2)::before{animation-delay:.07s}
+.tl li:nth-child(3)::before{animation-delay:.14s}
+.tl li:nth-child(4)::before{animation-delay:.21s}
+@keyframes tlDraw{from{transform:scaleY(0)}}
+#dBody .pill{animation:pillUp .25s var(--ease)}
+@keyframes pillUp{from{opacity:0;transform:translateY(4px)}}
+/* 成功页编号延迟淡入 */
+.success .idbox{animation:fade .5s var(--ease) .15s both}
+/* 点赞数字小跳 */
+.like .lc{display:inline-block}
+.like.pop .lc{animation:lcUp .3s var(--ease)}
+@keyframes lcUp{40%{transform:translateY(-3px);color:#B2542A}}

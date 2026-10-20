@@ -185,6 +185,8 @@ function renderAuth() {
     $('#menuName').textContent = name;
     $('#menuSub').textContent = currentUser.email_masked ? '邮箱 ' + currentUser.email_masked : '已登录';
   }
+  updateBell();
+  if (logged) loadNotifs();
 }
 
 async function checkAuth() {
@@ -269,6 +271,54 @@ $('#settingsBtn').onclick = () => { closeMenu(); toast('个人设置暂未开放
 
 // 页面加载时检查登录状态
 checkAuth();
+
+/* ===== 站内通知 ===== */
+let notifItems = [], notifUnread = 0, notifLoadedAt = 0;
+function closeBell() { const m = $('#bellMenu'); if (m) m.hidden = true; const b = $('#bellBtn'); if (b) b.setAttribute('aria-expanded', false); }
+function updateBell() {
+  const btn = $('#bellBtn'); if (!btn) return;
+  const logged = isLogged();
+  btn.hidden = !logged;
+  const bd = $('#bellBadge');
+  bd.hidden = !(logged && notifUnread > 0);
+  bd.textContent = notifUnread > 99 ? '99+' : String(notifUnread);
+}
+async function loadNotifs(force) {
+  if (!isLogged()) return;
+  if (!force && Date.now() - notifLoadedAt < 30000) return;
+  notifLoadedAt = Date.now();
+  try {
+    const d = await apiCall('/notifications');
+    notifItems = Array.isArray(d.items) ? d.items : [];
+    notifUnread = d.unread || 0;
+    updateBell(); renderNotifs();
+  } catch (e) { notifLoadedAt = 0; }
+}
+function renderNotifs() {
+  const el = $('#bellList'); if (!el) return;
+  el.innerHTML = notifItems.length ? notifItems.map(n => `<button type="button" class="bell-item${n.is_read ? '' : ' unread'}" data-pub="${escHtml(n.public_id || '')}" data-nid="${n.id}"><span class="bell-dot" aria-hidden="true"></span><span class="bell-main"><b>${escHtml(n.title || '反馈有新进展')}</b><span>${escHtml(n.content || '')}</span><time>${escHtml(n.public_id || '')} · ${fmtTime(n.created_at)}</time></span></button>`).join('')
+    : '<p class="bell-empty">暂时没有通知，反馈有新进展会第一时间告诉你。</p>';
+}
+$('#bellBtn').onclick = e => { e.stopPropagation(); const m = $('#bellMenu'); const o = m.hidden; closeBell(); closeMenu(); if (o) { m.hidden = false; $('#bellBtn').setAttribute('aria-expanded', true); loadNotifs(true); } };
+document.addEventListener('click', e => { if (!e.target.closest('.bell-wrap')) closeBell(); });
+$('#bellAll').onclick = async () => {
+  try { await apiCall('/notifications/read-all', 'POST'); } catch (e) {}
+  notifItems.forEach(n => { n.is_read = 1; }); notifUnread = 0; updateBell(); renderNotifs();
+};
+$('#bellList').addEventListener('click', async e => {
+  const b = e.target.closest('.bell-item'); if (!b) return;
+  const pub = b.dataset.pub, nid = b.dataset.nid;
+  const item = notifItems.find(n => String(n.id) === String(nid));
+  if (item && !item.is_read) {
+    item.is_read = 1; notifUnread = Math.max(0, notifUnread - 1); updateBell();
+    try { await apiCall('/notifications/' + nid + '/read', 'POST'); } catch (e) {}
+  }
+  closeBell();
+  if (!pub) return;
+  const cur = location.hash.replace(/^#/, '').split('?')[0];
+  if (cur === '/mine') { loadMine().then(() => openDrawer(pub)); }
+  else location.hash = '#/mine?open=' + encodeURIComponent(pub);
+});
 
 /* write flow */
 let step = 1; const draft = { topic: null, dept: null };
@@ -376,6 +426,7 @@ function route() {
     loadMine().then(() => { const m = /open=([\w-]+)/.exec(q || ''); if (m) setTimeout(() => openDrawer(m[1]), 250); });
   }
   if (name === 'help' && sessionStorage.scrollTo) { const el = $('#' + sessionStorage.scrollTo); sessionStorage.removeItem('scrollTo'); setTimeout(() => { el.scrollIntoView({ block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1700); }, 60); }
+  if (isLogged()) loadNotifs();
   observe();
 }
 $$('[data-scroll]').forEach(a => a.addEventListener('click', () => sessionStorage.scrollTo = a.dataset.scroll));

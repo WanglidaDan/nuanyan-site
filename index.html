@@ -6,7 +6,7 @@
 <title>暖言小站 · 员工建议平台</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F3D2F'/%3E%3Ctext x='50' y='70' font-size='54' text-anchor='middle' fill='%23F7F3EA' font-family='serif'%3E%E6%9A%96%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261023a">
+<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261023b">
 </head>
 <body>
   <div class="splash" id="splash" aria-hidden="true">
@@ -30,6 +30,7 @@
   <symbol id="pen" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.3-1 .8-1 1.7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="currentColor"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 0 1 12 0v5l1.5 2.5h-15Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 21a2.2 2.2 0 0 0 4 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   <symbol id="close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
   <symbol id="d-office" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M10 21v-3h4v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   <symbol id="d-hr" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 14.7c2.8.3 5 2 5 4.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
@@ -50,6 +51,7 @@
       <li><a href="#/help" data-nav="help">帮助</a></li>
     </ul></nav>
     <div class="acct">
+      <span class="bell-wrap"><button class="bell-btn" id="bellBtn" aria-label="通知" aria-haspopup="true" aria-expanded="false" hidden><svg class="ic"><use href="#bell"/></svg><span class="bell-badge" id="bellBadge" hidden>0</span></button><span class="menu bell-menu" id="bellMenu" hidden><span class="bell-head"><b>通知</b><button type="button" class="bell-all" id="bellAll">全部已读</button></span><span class="bell-list" id="bellList"><span class="bell-empty">正在加载…</span></span></span></span>
       <button class="chip" id="acctBtn" aria-haspopup="menu" aria-expanded="false" hidden><span class="avatar" id="chipAvatar" aria-hidden="true">王</span><span id="chipName">小王</span><svg class="ic sm rot"><use href="#chev"/></svg></button>
       <div class="menu" id="acctMenu" role="menu" hidden>
         <div class="menu-head"><b id="menuName">—</b><span id="menuSub">已登录</span></div>
@@ -334,7 +336,7 @@
   </article>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/js/app-mobile2.js?v=20261023a"></script>
+<script src="/static/js/app-mobile2.js?v=20261023b"></script>
 
 </body>
 </html>
