@@ -130,13 +130,11 @@
   function loadDashboard() {
     api("/dashboard/summary").then(function (s) {
       var stats = [
-        ["反馈总数", s.total, ""], ["待受理", s.pending, s.pending > 0 ? "warn" : ""],
-        ["办理中", s.processing, ""], ["即将超期", s.due_soon, s.due_soon > 0 ? "warn" : ""],
-        ["已超期", s.overdue, s.overdue > 0 ? "warn" : ""], ["本月办结", s.closed_month, ""],
-        ["员工满意度", s.satisfaction ? s.satisfaction + " 分" : "—", ""]
+        ["all", "反馈总数", s.total, ""], ["pending", "待受理", s.pending, s.pending > 0 ? "warn" : ""],
+        ["processing", "办理中", s.processing, ""], ["closed", "本月办结", s.closed_month, ""]
       ];
       $("adStats").innerHTML = stats.map(function (x) {
-        return '<div class="ad-stat ' + x[2] + '"><b>' + x[1] + '</b><span>' + x[0] + '</span></div>';
+        return '<div class="ad-stat ' + x[3] + (dashKey === x[0] ? " on" : "") + '" data-key="' + x[0] + '"><b>' + x[2] + '</b><span>' + x[1] + '</span></div>';
       }).join("");
       var trend = s.recent_trend || [];
       var max = Math.max.apply(null, trend.map(function (t) { return t.value; }).concat([1]));
@@ -151,8 +149,57 @@
       }).join("") || '<p class="ad-empty">暂无数据</p>';
       $("adCats").querySelectorAll(".bar i").forEach(function (b) { b.style.width = b.getAttribute("data-w") + "%"; });
       if (typeof s.unread_notifications === "number") setBadge(s.unread_notifications);
+      loadDashList();
     }).catch(function (ex) { toast(ex.message); });
   }
+
+  /* ---------- 总览反馈内容（点统计卡切换） ---------- */
+  var dashKey = "all";
+  var DASH_TITLES = { all: "全部反馈", pending: "待受理", processing: "办理中", closed: "本月办结" };
+  function dashLoader(key) {
+    if (key === "pending") return api("/feedbacks?status=PENDING_ACCEPTANCE&limit=100");
+    if (key === "processing") {
+      return Promise.all(["ACCEPTED", "VERIFYING", "PROCESSING", "WAITING_EMPLOYEE"].map(function (st) {
+        return api("/feedbacks?status=" + st + "&limit=100");
+      })).then(function (parts) {
+        var all = [].concat.apply([], parts);
+        return all.sort(function (x, y) { return String(y.created_at).localeCompare(String(x.created_at)); });
+      });
+    }
+    if (key === "closed") {
+      return api("/feedbacks?status=CLOSED&limit=100").then(function (items) {
+        var now = new Date();
+        var p = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+        return items.filter(function (f) { return String(f.closed_at || f.created_at || "").slice(0, 7) === p; });
+      });
+    }
+    return api("/feedbacks?limit=100");
+  }
+  function loadDashList() {
+    var box = $("adDashList");
+    if (!box) return;
+    $("adDashTitle").textContent = DASH_TITLES[dashKey] || "全部反馈";
+    box.innerHTML = '<p class="ad-empty">加载中…</p>';
+    dashLoader(dashKey).then(function (items) {
+      box.innerHTML = items.length ? items.map(function (f) {
+        return '<div class="ad-ditem" data-id="' + f.id + '"><span class="pid">' + esc(f.public_id) + '</span>' +
+          '<span class="tt">' + esc(f.title || "(无标题)") + '</span>' +
+          '<span class="st ' + esc(f.status) + '">' + esc(STATUS_LABELS[f.status] || f.status) + '</span>' +
+          '<time>' + esc(fmtTime(f.created_at)) + '</time></div>';
+      }).join("") : '<p class="ad-empty">这个板块暂时没有反馈</p>';
+    }).catch(function (ex) { box.innerHTML = '<p class="ad-empty">' + esc(ex.message) + '</p>'; });
+  }
+  $("adStats").addEventListener("click", function (e) {
+    var card = e.target.closest(".ad-stat[data-key]");
+    if (!card) return;
+    dashKey = card.getAttribute("data-key");
+    document.querySelectorAll(".ad-stat").forEach(function (el) { el.classList.toggle("on", el === card); });
+    loadDashList();
+  });
+  $("adDashList").addEventListener("click", function (e) {
+    var row = e.target.closest(".ad-ditem[data-id]");
+    if (row) openDetail(row.getAttribute("data-id"));
+  });
 
   /* ---------- 通知 ---------- */
   function setBadge(n) {

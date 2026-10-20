@@ -5,7 +5,7 @@
   --ink:#22312A; --ink-2:#5C6F62; --ink-3:#8A978C;
   --line:rgba(27,49,40,.13); --gold:#C79A3B; --ochre:#BC5A28;
   --danger:#B4452F;
-  --serif:"Songti SC","STSong","Noto Serif SC","SimSun",serif;
+  --serif:"Noto Serif SC","Noto Serif CJK SC","Songti SC","Source Han Serif SC","STSong",serif;
   --shadow:0 18px 44px -24px rgba(27,49,40,.28);
   --r:18px;
 }
@@ -19,8 +19,8 @@ button{font-family:inherit}
 .ad-login{min-height:100dvh;display:grid;place-items:center;padding:24px;background:radial-gradient(120% 90% at 50% 0%,#2A4A3A 0%,#1B3128 58%,#132219 100%)}
 .ad-login-card{width:min(400px,100%);background:var(--paper);border-radius:24px;padding:38px 34px 32px;box-shadow:0 30px 60px -20px rgba(0,0,0,.45)}
 .ad-brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}
-.ad-logo{width:44px;height:44px;border-radius:14px;background:var(--deep);color:#EBD9A0;display:grid;place-items:center;font-family:var(--serif);font-size:23px;font-weight:700;box-shadow:inset 0 0 0 1px rgba(235,217,160,.35)}
-.ad-brand b{display:block;font-family:var(--serif);font-size:18px;letter-spacing:.06em}
+.ad-mark{width:34px;height:34px;color:var(--green);flex:none}
+.ad-brand b{display:block;font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:.04em;color:var(--green)}
 .ad-brand span{font-size:12px;color:var(--ochre);letter-spacing:.18em}
 .ad-login-card h1{margin:0 0 6px;font-family:var(--serif);font-size:25px;font-weight:700}
 .ad-sub{margin:0 0 24px;color:var(--ink-2);font-size:14px}
@@ -43,7 +43,7 @@ button{font-family:inherit}
 .ad-side .ad-brand{margin-bottom:6px}
 .ad-side .ad-brand b{color:#F7F3EA}
 .ad-side .ad-brand span{color:#C8A961}
-.ad-side .ad-logo{background:rgba(247,243,234,.08);box-shadow:inset 0 0 0 1px rgba(235,217,160,.4)}
+.ad-side .ad-mark{color:#D9B45C}
 .ad-nav{display:flex;flex-direction:column;gap:6px;margin-top:14px}
 .ad-nav button{border:0;background:transparent;color:#C9D6CB;text-align:left;padding:12px 14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:background .2s}
 .ad-nav button.on{background:rgba(247,243,234,.13);color:#fff;box-shadow:inset 3px 0 0 var(--gold)}
@@ -121,7 +121,7 @@ button{font-family:inherit}
   .ad-app{flex-direction:column}
   .ad-side{width:auto;padding:14px 16px calc(12px);padding-top:calc(14px + env(safe-area-inset-top));flex-direction:row;flex-wrap:wrap;align-items:center;gap:10px;position:sticky;top:0;z-index:20}
   .ad-side .ad-brand{margin:0;flex:1}
-  .ad-side .ad-logo{width:36px;height:36px;font-size:19px;border-radius:11px}
+  .ad-side .ad-mark{width:30px;height:30px}
   .ad-side .ad-brand b{font-size:16px}
   .ad-side .ad-brand span{font-size:11px}
   .ad-me{margin:0;border:0;padding:0}
@@ -217,4 +217,24 @@ button{font-family:inherit}
   .op-lab select{flex:1}
   .ad-rep-head .st{margin-left:0}
   .ad-notif-t{flex-direction:column;gap:2px}
+}
+
+/* ---------- 总览提质与反馈内容区 ---------- */
+.ad-login-card{position:relative;overflow:hidden}
+.ad-login-card::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),#EBD9A0,var(--gold))}
+.ad-stat{cursor:pointer;position:relative;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.ad-stat:hover{transform:translateY(-2px)}
+.ad-stat::after{content:"›";position:absolute;top:12px;right:15px;font-size:17px;color:var(--ink-3);line-height:1}
+.ad-stat.on{border-color:var(--green);box-shadow:0 0 0 3px rgba(49,98,74,.16),var(--shadow)}
+.ad-dash-card{margin-bottom:22px}
+.ad-ditem{display:flex;align-items:center;gap:12px;padding:13px 6px;border-bottom:1px dashed var(--line);cursor:pointer;border-radius:8px}
+.ad-ditem:last-child{border-bottom:0}
+.ad-ditem:hover{background:rgba(237,241,230,.65)}
+.ad-ditem .pid{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--ink-3);white-space:nowrap}
+.ad-ditem .tt{flex:1;min-width:0;font-family:var(--serif);font-size:15.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ad-ditem time{font-size:12px;color:var(--ink-3);white-space:nowrap}
+@media(max-width:820px){
+  .ad-ditem{flex-wrap:wrap;row-gap:3px}
+  .ad-ditem .tt{order:3;flex-basis:100%;white-space:normal}
+  .ad-ditem .st{margin-left:auto}
 }

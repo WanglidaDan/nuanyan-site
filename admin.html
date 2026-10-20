@@ -6,13 +6,14 @@
   <meta name="description" content="暖言小站管理端：反馈办理、回复与数据总览。" />
   <meta name="theme-color" content="#1B3128" />
   <title>管理端｜暖言小站</title>
-  <link rel="stylesheet" href="/static/admin.css?v=20261020c" />
+  <link rel="stylesheet" href="/static/admin.css?v=20261020d" />
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><symbol id="mark" viewBox="0 0 40 40"><path d="M20 4C10.6 4 4 10.3 4 18.4c0 4.6 2.2 8.6 5.7 11.2L8.4 36l6.6-3.5c1.6.4 3.2.6 5 .6 9.4 0 16-6.3 16-14.7S29.4 4 20 4z" fill="currentColor"/><path d="M14 23c4-1 8-5 10-11 1 4 0 9-4 12-2 1.5-4 1.5-6-1z" fill="#F7F3EA"/></symbol></defs></svg>
   <!-- ============ login ============ -->
   <div class="ad-login" id="adLogin">
     <div class="ad-login-card">
-      <div class="ad-brand"><span class="ad-logo">暖</span><div><b>暖言小站</b><span>管理端</span></div></div>
+      <div class="ad-brand"><svg class="ad-mark"><use href="#mark"/></svg><div><b>暖言小站</b><span>管理端</span></div></div>
       <h1>欢迎回来</h1>
       <p class="ad-sub">系统管理员与承办部门统一入口</p>
       <form id="adLoginForm" autocomplete="off">
@@ -28,7 +29,7 @@
   <!-- ============ app ============ -->
   <div class="ad-app" id="adApp" hidden>
     <aside class="ad-side">
-      <div class="ad-brand"><span class="ad-logo">暖</span><div><b>暖言小站</b><span>管理端</span></div></div>
+      <div class="ad-brand"><svg class="ad-mark"><use href="#mark"/></svg><div><b>暖言小站</b><span>管理端</span></div></div>
       <nav class="ad-nav">
         <button type="button" data-view="dash" class="on">数据总览</button>
         <button type="button" data-view="list">反馈办理</button>
@@ -41,6 +42,7 @@
       <section id="viewDash" class="ad-view">
         <h2>数据总览</h2>
         <div class="ad-stats" id="adStats"></div>
+        <div class="ad-card ad-dash-card"><h3 id="adDashTitle">全部反馈</h3><div class="ad-dash-list" id="adDashList"></div></div>
         <div class="ad-cards">
           <div class="ad-card"><h3>近 7 天趋势</h3><div class="ad-trend" id="adTrend"></div></div>
           <div class="ad-card"><h3>分类分布</h3><div id="adCats"></div></div>
@@ -74,6 +76,6 @@
     </main>
   </div>
   <div class="ad-toast" id="adToast" hidden></div>
-  <script src="/static/admin.js?v=20261020c"></script>
+  <script src="/static/admin.js?v=20261020d"></script>
 </body>
 </html>
