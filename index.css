@@ -709,3 +709,21 @@ body.booting{overflow:hidden}
 @keyframes sp-fade{to{opacity:1}}
 @keyframes sp-failsafe{to{opacity:0;visibility:hidden}}
 @media (prefers-reduced-motion:reduce){.splash{display:none}}
+
+/* —— 2026-10-20：补充前置 / 详情加载 / 最近办结横滑 —— */
+.d-supply-t{font-size:15px;font-weight:600;color:var(--ink)}
+.d-supply-hint{font-size:13.5px;color:var(--muted)}
+.d-supply.urgent{border:1.5px solid var(--apricot);background:var(--apricot-soft);border-radius:14px;padding:14px}
+.d-supply.urgent textarea{background:#FFFDF8}
+.d-loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:56px 0;color:var(--muted);font-size:14.5px}
+.d-spin{width:20px;height:20px;flex:none;border-radius:50%;border:2.5px solid var(--green-soft);border-top-color:var(--green);animation:dspin .7s linear infinite}
+@keyframes dspin{to{transform:rotate(360deg)}}
+.rdots{display:none}
+@media (max-width:768px){
+  .cards3{display:flex;grid-template-columns:none;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 2px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .cards3::-webkit-scrollbar{display:none}
+  .cards3 .rcard{flex:0 0 86%;scroll-snap-align:start}
+  .rdots{display:flex;justify-content:center;gap:6px;margin-top:2px}
+  .rdots span{width:6px;height:6px;border-radius:99px;background:var(--line-2);transition:all .3s}
+  .rdots span.on{width:18px;background:var(--green)}
+}

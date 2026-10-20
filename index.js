@@ -83,35 +83,43 @@ function stageOf(status) {
 async function openDrawer(publicId, from) {
   lastFocus = from || document.activeElement;
   let i = myItems.find(x => x.public_id === publicId);
-  try { i = await apiCall('/feedbacks/' + encodeURIComponent(publicId)); }
-  catch (e) { if (!i) { toast('详情加载失败，请稍后重试'); return; } }
-  renderDrawer(i);
+  $('#dId').textContent = publicId;
+  $('#dBody').innerHTML = '<div class="d-loading"><span class="d-spin" aria-hidden="true"></span>正在加载详情…</div>';
   $('#scrim').hidden = $('#drawer').hidden = false;
   lockBody(true);
   $('#dClose').focus();
+  try { i = await apiCall('/feedbacks/' + encodeURIComponent(publicId)); }
+  catch (e) {
+    if (!i) { toast('详情加载失败，请稍后重试'); closeDrawer(); return; }
+    toast('网络不稳，先显示最近一次的内容');
+  }
+  if ($('#drawer').hidden) return;
+  renderDrawer(i);
 }
 function renderDrawer(i) {
   const dept = i.responsible_department_name || (i.employee_departments || []).map(d => d.name).join('、') || '';
   const msgs = Array.isArray(i.messages) ? i.messages : [];
   const replies = msgs.filter(m => m.sender_type !== 'EMPLOYEE');
   const lastReply = replies[replies.length - 1];
+  const needSupply = i.status === 'WAITING_EMPLOYEE';
+  const supplyHtml = (i.status !== 'CLOSED' && i.status !== 'REJECTED') ? `<div class="d-supply${needSupply ? ' urgent' : ''}" id="dSupply"${i.status === 'REPLIED' ? ' hidden' : ''}>${needSupply ? '<p class="d-supply-t">承办部门在等你补充</p><p class="d-supply-hint">把需要的信息补上，部门会接着办理你的建议。</p>' : '<p class="d-supply-t">补充说明</p>'}<label class="sr" for="dSupplyText">补充说明</label><textarea id="dSupplyText" rows="3" maxlength="2000" placeholder="有新情况要补充？写在这里，会发送给承办部门"></textarea><button class="btn primary sm" id="dSupplySend">发送补充</button></div>` : '';
   const age = stageOf(i.status);
   const steps = ['提交', '受理', '办理', '回复'];
   const tl = steps.map((s, k) => {
     const cls = k < age ? 'done' : k === age ? 'cur' : '';
     const note = k === 0 ? `<time>${fmtTime(i.created_at)}</time><p>已匿名归档</p>`
       : k === 3 && lastReply ? `<time>${fmtTime(lastReply.created_at)}</time><p>承办部门已答复</p>`
-      : k === age && age < 4 ? '<p>进行中</p>' : '<p>尚未开始</p>';
+      : k === age && age < 4 ? (needSupply ? '<p>等你补充</p>' : '<p>进行中</p>') : '<p>尚未开始</p>';
     return `<li class="${cls}"><span class="n"></span><b>${s}</b>${note}</li>`;
   }).join('');
   $('#dId').textContent = i.public_id;
   $('#dBody').innerHTML = `<span class="pill ${pc(i.status_label)}">${escHtml(i.status_label)}</span><h2 id="dTitle">${escHtml(i.title)}</h2>
    <p class="d-sub">${escHtml(dept)} · ${fmtDay(i.created_at)} 提交</p><div class="d-q">${escHtml(i.description)}</div>
-   <p class="d-sec">处理进度</p><ol class="tl">${tl}</ol><p class="d-sec">部门答复</p>
+   ${needSupply ? supplyHtml : ''}<p class="d-sec">处理进度</p><ol class="tl">${tl}</ol><p class="d-sec">部门答复</p>
    ${replies.length ? replies.map(m => `<div class="reply"><div class="reply-h"><span>承办部门 答复</span><span>${fmtTime(m.created_at)}</span></div><div class="reply-b"><p>${escHtml(m.content)}</p></div></div>`).join('')
    : `<div class="d-empty">承办部门答复后会显示在这里，并通过站内消息通知你。</div>`}
    ${i.status === 'REPLIED' ? `<div class="d-actions"><button class="btn primary sm" id="dOk">这个答复解决了我的问题</button><button class="btn ghost sm" id="dMore">继续反馈</button></div>` : ''}
-   ${i.status !== 'CLOSED' && i.status !== 'REJECTED' ? `<div class="d-supply" id="dSupply"${i.status === 'REPLIED' ? ' hidden' : ''}><label class="sr" for="dSupplyText">补充说明</label><textarea id="dSupplyText" rows="3" maxlength="2000" placeholder="有新情况要补充？写在这里，会发送给承办部门"></textarea><button class="btn primary sm" id="dSupplySend">发送补充</button></div>` : ''}`;
+   ${needSupply ? '' : supplyHtml}`;
   const ok = $('#dOk'), more = $('#dMore'), supply = $('#dSupply');
   if (ok) ok.onclick = async () => {
     ok.disabled = true;
@@ -146,6 +154,7 @@ let currentUser = null;
 let guestView = false;
 const isLogged = () => !!currentUser && !guestView;
 let authReady = false;
+let pendingRoute = null;
 const menu = $('#acctMenu'), ab = $('#acctBtn');
 function closeMenu() { menu.hidden = true; ab.setAttribute('aria-expanded', false); $('#logoutConfirm').hidden = true; }
 ab.onclick = e => { e.stopPropagation(); const o = menu.hidden; closeMenu(); if (o) { menu.hidden = false; ab.setAttribute('aria-expanded', true); $('.menu-item', menu).focus(); } };
@@ -206,8 +215,8 @@ function switchAuthTab(tab) {
 }
 $$('.am-tab').forEach(t => t.onclick = () => switchAuthTab(t.dataset.atab));
 $$('#authModal [data-goto]').forEach(b => b.onclick = () => switchAuthTab(b.dataset.goto));
-$('#authModal').addEventListener('click', e => { if (e.target.closest('[data-aclose]')) closeAuth(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !authModal.hidden) closeAuth(); });
+$('#authModal').addEventListener('click', e => { if (e.target.closest('[data-aclose]')) { pendingRoute = null; closeAuth(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !authModal.hidden) { pendingRoute = null; closeAuth(); } });
 
 function showErr(id, msg) { const el = $(id); el.textContent = msg; el.hidden = false; }
 
@@ -221,6 +230,7 @@ $('#loginForm').onsubmit = async e => {
     currentUser = { account }; guestView = false;
     await checkAuth();
     closeAuth();
+    if (pendingRoute) { const p = pendingRoute; pendingRoute = null; location.hash = p; }
     toast('欢迎回来，' + account);
   } catch (err) { showErr('#loginErr', err.message); }
 };
@@ -237,6 +247,7 @@ $('#registerForm').onsubmit = async e => {
     currentUser = { account }; guestView = false;
     await checkAuth();
     closeAuth();
+    if (pendingRoute) { const p = pendingRoute; pendingRoute = null; location.hash = p; }
     toast('注册成功，欢迎 ' + account);
   } catch (err) { showErr('#registerErr', err.message); }
 };
@@ -269,16 +280,20 @@ $$('.topic').forEach(t => t.onclick = () => {
     else { toast('最多选择 2 个部门'); }
     const sel = $$('.topic[aria-checked="true"]').map(x => x.dataset.d);
     draft.dept = sel.join('、'); draft.topic = sel.join('、');
-    update();
+    update(); saveDraft();
   });
 $('.topics').addEventListener('keydown', e => { const ts = $$('.topic'), i = ts.indexOf(document.activeElement);
   if (['ArrowRight','ArrowDown'].includes(e.key)) { e.preventDefault(); ts[(i + 1) % ts.length].focus(); }
   if (['ArrowLeft','ArrowUp'].includes(e.key)) { e.preventDefault(); ts[(i - 1 + ts.length) % ts.length].focus(); } });
 const body = $('#body'), ttl = $('#ttl'), hint = $('#bodyHint');
+const DRAFT_KEY = () => 'ny-draft-' + ((currentUser && currentUser.account) || 'anon');
+function saveDraft() { try { const d = { t: ttl.value, b: body.value, depts: $$('.topic[aria-checked="true"]').map(x => x.dataset.d) }; if (!d.t && !d.b && !d.depts.length) localStorage.removeItem(DRAFT_KEY()); else localStorage.setItem(DRAFT_KEY(), JSON.stringify(d)); } catch (e) {} }
+function loadDraft() { try { const d = JSON.parse(localStorage.getItem(DRAFT_KEY()) || 'null'); return d && (d.t || d.b || (d.depts && d.depts.length)) ? d : null; } catch (e) { return null; } }
+function clearDraft() { try { localStorage.removeItem(DRAFT_KEY()); } catch (e) {} }
 let touched = false;
-body.addEventListener('input', () => { touched = true; update(); });
+body.addEventListener('input', () => { touched = true; update(); saveDraft(); });
 body.addEventListener('blur', () => { touched = true; update(); });
-ttl.addEventListener('input', update);
+ttl.addEventListener('input', () => { update(); saveDraft(); });
 function validReason(s) {
   if (s === 1) return draft.topic ? '' : '请先选择承办部门（至少 1 个，最多 2 个）';
   if (s === 2) {
@@ -318,6 +333,7 @@ $('#nextBtn').onclick = async () => {
   try {
     const deptIds = $$('.topic[aria-checked="true"]').map(x => DEPT_IDS[x.dataset.d]).filter(Boolean);
     lastSubmission = await apiCall('/feedbacks', 'POST', { title: ttl.value.trim(), description: body.value.trim(), department_ids: deptIds, need_reply: true });
+    clearDraft();
     go(4);
   } catch (e) { toast(e.message || '提交失败，请稍后重试'); }
   btn.disabled = false; btn.textContent = '确认提交';
@@ -340,14 +356,23 @@ function route() {
   window.jumpTo(0);
   if (name === 'write' && !isLogged()) {
     if (!authReady) { setTimeout(route, 400); return; }
-    openAuth('login'); location.hash = '#/'; return;
+    pendingRoute = location.hash; openAuth('login'); location.hash = '#/'; return;
   }
-  if (name === 'write') { draft.topic = null; draft.dept = null; $$('.topic').forEach(x => x.setAttribute('aria-checked', 'false')); ttl.value = body.value = ''; touched = false; go(1); }
+  if (name === 'write') { draft.topic = null; draft.dept = null; $$('.topic').forEach(x => x.setAttribute('aria-checked', 'false')); ttl.value = body.value = ''; touched = false;
+    const saved = loadDraft();
+    if (saved) {
+      (saved.depts || []).slice(0, 2).forEach(n => { const el = $$('.topic').find(x => x.dataset.d === n); if (el) el.setAttribute('aria-checked', 'true'); });
+      const sel2 = $$('.topic[aria-checked="true"]').map(x => x.dataset.d);
+      draft.dept = sel2.join('、'); draft.topic = sel2.join('、');
+      ttl.value = saved.t || ''; body.value = saved.b || ''; touched = !!(saved.b && saved.b.trim());
+      toast('已恢复上次未写完的草稿');
+    }
+    go(1); }
   const rmEl = $('#rulesModal');
   if (name !== 'pool' && rmEl && !rmEl.hidden) { rmEl.hidden = true; lockBody(false); }
   if (name === 'pool' && !sessionStorage.rulesSeen) { $('#rulesModal').hidden = false; lockBody(true); }
   if (name === 'mine') {
-    if (!isLogged()) { if (!authReady) { setTimeout(route, 400); return; } openAuth('login'); location.hash = '#/'; return; }
+    if (!isLogged()) { if (!authReady) { setTimeout(route, 400); return; } pendingRoute = location.hash; openAuth('login'); location.hash = '#/'; return; }
     loadMine().then(() => { const m = /open=([\w-]+)/.exec(q || ''); if (m) setTimeout(() => openDrawer(m[1]), 250); });
   }
   if (name === 'help' && sessionStorage.scrollTo) { const el = $('#' + sessionStorage.scrollTo); sessionStorage.removeItem('scrollTo'); setTimeout(() => { el.scrollIntoView({ block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1700); }, 60); }
@@ -683,3 +708,20 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeRules();
 });
+
+/* 最近办结：移动端横滑圆点指示 */
+(() => {
+  const track = document.querySelector('.cards3');
+  const dots = document.querySelectorAll('.rdots span');
+  if (!track || !dots.length) return;
+  let ticking = false;
+  track.addEventListener('scroll', () => {
+    if (ticking) return; ticking = true;
+    requestAnimationFrame(() => {
+      const w = track.scrollWidth - track.clientWidth;
+      const idx = w > 0 ? Math.round((track.scrollLeft / w) * (dots.length - 1)) : 0;
+      dots.forEach((d, k) => d.classList.toggle('on', k === idx));
+      ticking = false;
+    });
+  }, { passive: true });
+})();
