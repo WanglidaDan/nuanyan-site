@@ -6,7 +6,7 @@
   <meta name="description" content="暖言小站管理端：反馈办理、回复与数据总览。" />
   <meta name="theme-color" content="#1B3128" />
   <title>管理端｜暖言小站</title>
-  <link rel="stylesheet" href="/static/admin.css?v=20261020a" />
+  <link rel="stylesheet" href="/static/admin.css?v=20261020b" />
 </head>
 <body>
   <!-- ============ login ============ -->
@@ -32,6 +32,7 @@
       <nav class="ad-nav">
         <button type="button" data-view="dash" class="on">数据总览</button>
         <button type="button" data-view="list">反馈办理</button>
+        <button type="button" data-view="notif">通知 <span class="ad-badge" id="adNotifBadge" hidden>0</span></button>
       </nav>
       <div class="ad-me"><span id="adMeName">—</span><button type="button" id="adLogout">退出</button></div>
     </aside>
@@ -62,20 +63,17 @@
       <section id="viewDetail" class="ad-view" hidden>
         <button type="button" class="ad-btn ghost" id="backToList">← 返回列表</button>
         <div id="adDetail"></div>
-        <div class="ad-card"><h3>回复员工</h3>
-          <textarea id="adReplyText" rows="4" placeholder="写下给员工的回复（员工将在「我的反馈」中看到）"></textarea>
-          <div class="ad-row"><button type="button" class="ad-btn primary" id="adSendReply">发送回复</button></div>
-        </div>
-        <div class="ad-card"><h3>办理状态</h3>
-          <div class="ad-row">
-            <select id="adStatusSel"></select>
-            <button type="button" class="ad-btn" id="adSetStatus">更新状态</button>
-          </div>
-        </div>
+        <div id="adFlow"></div>
+      </section>
+      <!-- notifications -->
+      <section id="viewNotif" class="ad-view" hidden>
+        <h2>通知</h2>
+        <div class="ad-notif-bar"><button type="button" class="ad-btn" id="notifReadAll">全部标为已读</button></div>
+        <div id="adNotifs"></div>
       </section>
     </main>
   </div>
   <div class="ad-toast" id="adToast" hidden></div>
-  <script src="/static/admin.js?v=20261020a"></script>
+  <script src="/static/admin.js?v=20261020b"></script>
 </body>
 </html>
