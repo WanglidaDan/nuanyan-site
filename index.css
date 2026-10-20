@@ -776,3 +776,15 @@ body.booting{overflow:hidden}
 .bell-push-btn.on{background:var(--paper);color:var(--green)}
 .bell-push-btn:disabled{opacity:.45;cursor:default}
 .bell-push-btn[hidden]{display:none}
+
+/* —— 2026-10-20 深夜：顶栏/通知面板/办结卡排版修复 —— */
+.acct{display:flex;align-items:center;gap:8px;flex:none}
+.bell-wrap{margin-right:0}
+.bell-menu,.bell-list{box-sizing:border-box}
+@media (max-width:768px){
+  .bell-menu{max-width:calc(100vw - 16px)}
+  .rmeta{flex-wrap:wrap;row-gap:8px}
+  .rmeta span{white-space:nowrap}
+  .rmeta .rmore{margin-left:auto}
+  .rmeta span:last-child{margin-left:auto}
+}
