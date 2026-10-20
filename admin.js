@@ -537,6 +537,7 @@
       $("aiModel").value = c.model || "";
       $("aiKey").value = "";
       $("aiState").textContent = c.configured ? ("已配置（密钥尾号 " + (c.key_hint || "") + "）") : "尚未配置密钥，AI 功能暂不可用";
+      $("aiKey").placeholder = c.configured ? ("已保存（尾号 " + (c.key_hint || "") + "），更换时直接粘贴新密钥") : "粘贴 API 密钥";
     }).catch(function (e) { toast(e.message); });
   }
 
