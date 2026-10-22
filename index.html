@@ -6,7 +6,7 @@
 <title>暖言小站 · 员工建议平台</title>
 <link rel="icon" type="image/png" href="/static/logo-leaf.png">
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261024a">
+<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261024b">
 </head>
 <body>
   <div class="splash" id="splash" aria-hidden="true">
@@ -79,7 +79,7 @@
 <!-- HOME -->
 <section class="view" data-view="home">
   <div class="hero">
-    <div class="mesh" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+    <div class="mesh" aria-hidden="true"><i class="b2"></i><i class="b3"></i></div>
     <div class="wrap hero-in">
       <div class="hero-copy">
         <h1 class="display">每一条建议，<br>都值得被认真回应</h1>
@@ -96,36 +96,17 @@
           <div class="mb-back" aria-hidden="true"></div>
           <div class="mb-cards" id="mbCards"></div>
           <div class="mb-front" aria-hidden="true">
-            <div class="mb-plate"><svg class="mb-plate-mark"><use href="#mark"/></svg><span>暖言信箱</span></div>
+            <div class="mb-plate"><img class="mb-plate-logo" src="/static/logo-leaf.png" alt=""><span>暖言信箱</span></div>
             <div class="mb-slot"></div>
           </div>
 
         </div>
-        <p class="demo-note">信箱中的卡片为演示示例，点击查看样例答复</p>
       </div>
     </div>
   </div>
   <div class="wrap"><div class="todo-banner" id="todoBanner" hidden><span class="tb-txt" id="todoBannerTxt"></span><a class="btn primary sm" href="#/mine" id="todoBannerBtn">去处理</a></div></div>
   <div class="orn-divider" aria-hidden="true"><span></span><i></i><span></span></div>
 
-  <section class="wrap sec" id="flowSec" aria-labelledby="flowT">
-    <div class="sec-head reveal"><p class="kicker">流程透明</p><h2 id="flowT" class="h2">建议会怎样被处理</h2><p class="muted">每一步都有记录，你可以随时在「我的反馈」查看进度。</p></div>
-    <ol class="journey" id="journey">
-      <li class="reveal" data-j="0" tabindex="0" role="button" aria-label="查看提交步骤详情"><span class="jn">01</span><h3>提交</h3><p>选择部门写下建议，平台自动隐去你的身份信息后归档。</p><span class="jt">即时</span></li>
-      <li class="reveal" data-j="1" tabindex="0" role="button" aria-label="查看受理步骤详情"><span class="jn">02</span><h3>受理</h3><p>平台运营核对内容，分派给对应承办部门。</p><span class="jt">2 个工作日内</span></li>
-      <li class="reveal" data-j="2" tabindex="0" role="button" aria-label="查看办理步骤详情"><span class="jn">03</span><h3>办理</h3><p>承办部门调研、讨论，制定部门回复。</p><span class="jt">一般 10 个工作日</span></li>
-      <li class="reveal" data-j="3" tabindex="0" role="button" aria-label="查看回复步骤详情"><span class="jn">04</span><h3>回复</h3><p>给出书面答复：做什么、谁来做、何时完成。</p><span class="jt">办结即通知</span></li>
-    </ol>
-    <div class="jdetail" id="jdetail" hidden>
-      <div class="jd-top"></div>
-      <div class="jd-body">
-        <div class="jd-head"><span class="jd-num" id="jdNum">01</span><h3 id="jdTitle">提交</h3><span class="jd-time" id="jdTime">即时</span></div>
-        <p class="jd-desc" id="jdDesc"></p>
-        <ul class="jd-points" id="jdPoints"></ul>
-      </div>
-    </div>
-  </section>
-  <div class="orn-divider" aria-hidden="true"><span></span><i></i><span></span></div>
 
   <section class="wrap sec" aria-labelledby="doneT">
       <div class="sec-head row reveal"><div><p class="kicker">最近办结</p><h2 id="doneT" class="h2">说出来的事，正在被改变</h2></div></div>
@@ -397,7 +378,7 @@
   </article>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/js/app-mobile2.js?v=20261024a"></script>
+<script src="/static/js/app-mobile2.js?v=20261024b"></script>
 
 </body>
 </html>

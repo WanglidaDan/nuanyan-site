@@ -905,3 +905,4 @@ html.rm-on *,html.rm-on *::before,html.rm-on *::after{animation-duration:.01ms!i
   .drawer{top:0;right:0;bottom:0;width:100%;max-width:100%;border-radius:0}
   .notif-full .bell-item{padding:12px}
 }
+.mb-plate-logo{width:20px;height:20px;border-radius:26%;display:block}
