@@ -906,3 +906,5 @@ html.rm-on *,html.rm-on *::before,html.rm-on *::after{animation-duration:.01ms!i
   .notif-full .bell-item{padding:12px}
 }
 .mb-plate-logo{width:20px;height:20px;border-radius:26%;display:block}
+.contact-tel{font-size:22px;font-family:var(--serif);letter-spacing:.06em}
+.contact-tel a{color:var(--green);text-decoration:none;border-bottom:1px solid var(--gold)}
