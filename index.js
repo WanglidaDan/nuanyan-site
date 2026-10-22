@@ -756,7 +756,7 @@ const attachBtnEl = $('#attachBtn'); if (attachBtnEl) attachBtnEl.onclick = () =
 const photoBtnEl = $('#photoBtn'); if (photoBtnEl) photoBtnEl.onclick = () => $('#photoInput').click();
 const attachInputEl = $('#attachInput'); if (attachInputEl) attachInputEl.addEventListener('change', e => { handleFiles([...e.target.files]); e.target.value = ''; });
 const photoInputEl = $('#photoInput'); if (photoInputEl) photoInputEl.addEventListener('change', e => { handleFiles([...e.target.files]); e.target.value = ''; });
-[ttl, body].forEach(el => el.addEventListener('focus', () => setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 350)));
+[ttl, body].forEach(el => el.addEventListener('focus', () => setTimeout(() => { try { const r = el.getBoundingClientRect(), vh = window.innerHeight || 0; if (r.top < 90 || r.bottom > vh - 120) el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 350)));
 window.__nyFill = (t, b, topic) => { $$('.topic').find(x => x.dataset.t === topic).click(); ttl.value = t; body.value = b; touched = true; update(); };
 window.__nyGo = go;
 
