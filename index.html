@@ -6,7 +6,7 @@
 <title>暖言小站 · 员工建议平台</title>
 <link rel="icon" type="image/png" href="/static/logo-leaf.png">
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261023h">
+<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261024a">
 </head>
 <body>
   <div class="splash" id="splash" aria-hidden="true">
@@ -51,12 +51,12 @@
       <li><a href="#/help" data-nav="help">帮助</a></li>
     </ul></nav>
     <div class="acct">
-      <span class="bell-wrap"><button class="bell-btn" id="bellBtn" aria-label="通知" aria-haspopup="true" aria-expanded="false" hidden><svg class="ic"><use href="#bell"/></svg><span class="bell-badge" id="bellBadge" hidden>0</span></button></span><div class="menu bell-menu" id="bellMenu" hidden><div class="bell-head"><b>通知</b><button type="button" class="bell-all" id="bellAll">全部已读</button></div><div class="bell-list" id="bellList"><p class="bell-empty">正在加载…</p></div><div class="bell-foot"><span class="bell-foot-txt">手机推送<em id="pushHint"></em></span><button type="button" class="bell-push-btn" id="pushBtn">开启</button></div></div>
+      <span class="bell-wrap"><button class="bell-btn" id="bellBtn" aria-label="通知" aria-haspopup="true" aria-expanded="false" hidden><svg class="ic"><use href="#bell"/></svg><span class="bell-badge" id="bellBadge" hidden>0</span></button></span><div class="menu bell-menu" id="bellMenu" hidden><div class="bell-head"><b>通知</b><span class="bell-head-btns"><button type="button" class="bell-all" id="bellAll">全部已读</button><button type="button" class="bell-all" id="bellViewAll">查看全部</button></span></div><div class="bell-list" id="bellList"><p class="bell-empty">正在加载…</p></div><div class="bell-foot"><span class="bell-foot-txt">浏览器推送<em id="pushHint"></em></span><button type="button" class="bell-push-btn" id="pushHelp" hidden>查看开启方法</button><button type="button" class="bell-push-btn" id="pushBtn">开启</button></div></div>
       <button class="chip" id="acctBtn" aria-haspopup="menu" aria-expanded="false" hidden><span class="avatar" id="chipAvatar" aria-hidden="true">王</span><span id="chipName">小王</span><svg class="ic sm rot"><use href="#chev"/></svg></button>
       <div class="menu" id="acctMenu" role="menu" hidden>
         <div class="menu-head"><b id="menuName">—</b><span id="menuSub">已登录</span></div>
-        <button role="menuitem" class="menu-item" id="settingsBtn">个人设置（暂未开放）</button>
-        <button role="menuitem" class="menu-item" id="guestToggle">切换访客视图</button>
+        <button role="menuitem" class="menu-item" id="settingsBtn">个人设置</button>
+        <button role="menuitem" class="menu-item" id="helpBtn">帮助与隐私</button>
         <div class="menu-sep"></div>
         <button role="menuitem" class="menu-item danger" id="logoutBtn">退出登录</button>
         <div class="confirm" id="logoutConfirm" hidden>
@@ -99,11 +99,13 @@
             <div class="mb-plate"><svg class="mb-plate-mark"><use href="#mark"/></svg><span>暖言信箱</span></div>
             <div class="mb-slot"></div>
           </div>
-          
+
         </div>
+        <p class="demo-note">信箱中的卡片为演示示例，点击查看样例答复</p>
       </div>
     </div>
   </div>
+  <div class="wrap"><div class="todo-banner" id="todoBanner" hidden><span class="tb-txt" id="todoBannerTxt"></span><a class="btn primary sm" href="#/mine" id="todoBannerBtn">去处理</a></div></div>
   <div class="orn-divider" aria-hidden="true"><span></span><i></i><span></span></div>
 
   <section class="wrap sec" id="flowSec" aria-labelledby="flowT">
@@ -128,9 +130,9 @@
   <section class="wrap sec" aria-labelledby="doneT">
       <div class="sec-head row reveal"><div><p class="kicker">最近办结</p><h2 id="doneT" class="h2">说出来的事，正在被改变</h2></div></div>
       <div class="cards3">
-        <article class="rcard reveal" data-i="0" tabindex="0" role="button" aria-label="查看全过程：查阅室周六不开放，工作日查档要请假"><h3>查阅室周六不开放，工作日查档要请假</h3><div class="rbody"><p class="lbl">电子档案管理中心回复</p><p>自 11 月起，查阅室每周六上午 9:00–12:00 开放试行三个月，到期根据利用量决定是否延续。</p></div><p class="rmeta"><span>回复日期 · 10 月 16 日</span><span class="rmore">查看全过程 ›</span></p></article>
-        <article class="rcard reveal" data-i="2" tabindex="0" role="button" aria-label="查看全过程：库房温湿度看不到，希望定期公示"><h3>库房温湿度看不到，希望定期公示</h3><div class="rbody"><p class="lbl">运行管理部回复</p><p>库房温湿度监测屏已安装完成，每日在馆内公告栏和内网同步公示，超标自动预警。</p></div><p class="rmeta"><span>回复日期 · 10 月 12 日</span><span class="rmore">查看全过程 ›</span></p></article>
-        <article class="rcard reveal" data-i="3" tabindex="0" role="button" aria-label="查看全过程：电子档案检索慢，模糊搜基本搜不出来"><h3>电子档案检索慢，模糊搜基本搜不出来</h3><div class="rbody"><p class="lbl">电子档案管理中心回复</p><p>检索系统已升级模糊匹配和全文检索，10 月底前完成历史数据索引重建。</p></div><p class="rmeta"><span>回复日期 · 10 月 14 日</span><span class="rmore">查看全过程 ›</span></p></article>
+        <article class="rcard reveal" data-i="0" tabindex="0" role="button" aria-label="查看全过程：查阅室周六不开放，工作日查档要请假"><h3>查阅室周六不开放，工作日查档要请假</h3><div class="rbody"><p class="lbl">电子档案管理中心回复</p><p>查阅室周六开放已纳入服务优化安排，正在结合利用量测算开放时段，方案确定后在馆内公告。</p></div><p class="rmeta"><span>回复日期 · 10 月 16 日</span><span class="demo-tag">示例 · 已答复</span><span class="rmore">查看全过程 ›</span></p></article>
+        <article class="rcard reveal" data-i="2" tabindex="0" role="button" aria-label="查看全过程：库房温湿度看不到，希望定期公示"><h3>库房温湿度看不到，希望定期公示</h3><div class="rbody"><p class="lbl">运行管理部回复</p><p>正在推进库房温湿度公示，拟在馆内公告栏和内网定期发布监测情况，超标预警功能同步完善中。</p></div><p class="rmeta"><span>回复日期 · 10 月 12 日</span><span class="demo-tag">示例 · 已答复</span><span class="rmore">查看全过程 ›</span></p></article>
+        <article class="rcard reveal" data-i="3" tabindex="0" role="button" aria-label="查看全过程：电子档案检索慢，模糊搜基本搜不出来"><h3>电子档案检索慢，模糊搜基本搜不出来</h3><div class="rbody"><p class="lbl">电子档案管理中心回复</p><p>检索系统已启动优化，模糊匹配和全文检索分批升级中，历史数据索引重建按计划推进。</p></div><p class="rmeta"><span>回复日期 · 10 月 14 日</span><span class="demo-tag">示例 · 已答复</span><span class="rmore">查看全过程 ›</span></p></article>
       </div>
       <div class="rdots" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
   </section>
@@ -155,12 +157,12 @@
         <li data-s="2"><span class="dot">2</span>写下建议</li><li class="bar"></li>
         <li data-s="3"><span class="dot">3</span>确认提交</li>
       </ol>
-      <span class="save-note">草稿仅保存在本机</span>
+      <span class="save-note">草稿自动保存在本机</span>
     </div>
     <div class="panel">
       <div class="stage" data-step="1">
         <h1 class="h2">这条建议发给哪个部门？</h1>
-        <p class="muted">可单选或多选，最多选两个。</p>
+        <p class="muted">可单选或多选，最多选两个。<span class="dept-count" id="deptCount">已选择 0/2 个部门</span></p>
         <div class="topics" role="group" aria-label="选择部门">
           <button class="topic" role="checkbox" aria-checked="false" data-d="综合办公室"><span class="ti"><svg class="ic"><use href="#d-office"/></svg></span><b>综合办公室</b><span class="td">行政综合、公文会议、综合协调类事项</span></button>
           <button class="topic" role="checkbox" aria-checked="false" data-d="人事部"><span class="ti"><svg class="ic"><use href="#d-hr"/></svg></span><b>人事部</b><span class="td">招聘调配、薪酬社保、考核培训、职称评聘</span></button>
@@ -168,18 +170,21 @@
           <button class="topic" role="checkbox" aria-checked="false" data-d="经营管理部"><span class="ti"><svg class="ic"><use href="#d-chart"/></svg></span><b>经营管理部</b><span class="td">经营计划、预算财务、采购合同与资产管理</span></button>
           <button class="topic" role="checkbox" aria-checked="false" data-d="电子档案管理中心"><span class="ti"><svg class="ic"><use href="#d-archive"/></svg></span><b>电子档案管理中心</b><span class="td">档案数字化、检索系统、数据与技术支持</span></button>
           <button class="topic" role="checkbox" aria-checked="false" data-d="综合服务中心"><span class="ti"><svg class="ic"><use href="#d-service"/></svg></span><b>综合服务中心</b><span class="td">查阅接待、后勤保障、维修、食堂与班车</span></button>
-          <button class="topic platform" role="checkbox" aria-checked="false" data-d="平台分派" data-platform="1"><span class="ti"><svg class="ic"><use href="#help"/></svg></span><b>不确定，由平台分派</b><span class="td">拿不准归哪个部门时选这个，平台会帮你转给对口部门</span></button>
         </div>
       </div>
       <div class="stage" data-step="2" hidden>
         <h1 class="h2">说说具体情况</h1>
         <p class="muted">写清楚「在哪里、发生了什么、希望怎样改善」，更容易被快速办理。</p>
-        <div class="field"><label for="ttl">标题</label><input id="ttl" maxlength="40" placeholder="一句话概括，例如：早班班车经常满员"></div>
+        <div class="field"><label for="ttl">标题（至少 4 个字）</label><input id="ttl" maxlength="40" placeholder="一句话概括，例如：早班班车经常满员"><p class="field-err" id="ttlErr" hidden></p></div>
         <div class="field"><label for="body">详细描述</label>
           <textarea id="body" maxlength="500" rows="5" aria-describedby="bodyHint" placeholder="发生的时间、地点、影响，以及你的想法……"></textarea>
           <div class="field-foot"><span id="bodyHint" class="hint">至少 10 个字</span><span class="count" id="count">0/500</span></div>
         </div>
-        <div class="attach" tabindex="0" role="button" aria-label="添加附件（可选）"><span class="plus">＋</span><div><b>添加图片或文件（可选）</b><span>支持 JPG、PNG、PDF，单个不超过 10MB。上传前会自动清除照片位置信息。</span></div></div>
+        <div class="attach-box">
+          <div class="attach-btns"><button type="button" class="btn ghost sm" id="attachBtn">添加附件</button><button type="button" class="btn ghost sm" id="photoBtn">拍照上传</button><input type="file" id="attachInput" hidden multiple accept=".jpg,.jpeg,.png,.gif,.webp,.heic,.heif,.pdf,.doc,.docx,.txt"><input type="file" id="photoInput" hidden accept="image/*" capture="environment"></div>
+          <p class="attach-hint">可选，最多 5 个、总计 5MB；支持图片、PDF、Word、文本文件。照片会自动压缩并清除位置信息。</p>
+          <ul class="attach-list" id="attachList"></ul>
+        </div>
       </div>
       <div class="stage" data-step="3" hidden>
         <h1 class="h2">确认一下，就可以提交了</h1>
@@ -187,6 +192,7 @@
           <div><dt>承办部门</dt><dd id="sDept"></dd><button class="link" data-go="1">修改</button></div>
           <div><dt>标题</dt><dd id="sTitle"></dd><button class="link" data-go="2">修改</button></div>
           <div><dt>描述</dt><dd id="sBody" class="pre"></dd></div>
+          <div><dt>附件</dt><dd id="sAttach">无</dd><button class="link" data-go="2">修改</button></div>
         </dl>
         <div class="privacy-box"><svg class="ic"><use href="#lock"/></svg><div><b>你的身份受到保护</b><p>承办部门看不到你的姓名、账号和邮箱；平台仅为让你查看进度保存账号关联。</p></div></div>
       </div>
@@ -213,20 +219,22 @@
       <div><p class="kicker">树洞 </p>
       <h1 class="h2">说与树听</h1>
       <p class="muted lead2">分享想法、互相支招。需要部门处理的问题，请走正式建议。</p></div>
-      
+      <a class="btn primary pool-write" href="#/write">写正式建议</a>
     </div>
     <div class="pool-grid">
       <div class="pool-main">
         <form class="composer" id="composer" autocomplete="off">
           <label class="sr" for="pcText">写点什么</label>
-          <textarea id="pcText" maxlength="200" rows="3" placeholder="想和同事聊点什么？比如一个好用的小技巧、一家不错的午餐店……"></textarea>
+          <textarea id="pcText" maxlength="200" rows="2" placeholder="想和同事聊点什么？比如一个好用的小技巧、一家不错的午餐店……"></textarea>
           <div class="cp-row">
             <span class="cp-count" id="pcCount">0/200</span>
             <button class="btn primary sm" id="pcSend" type="submit" disabled>发布</button>
           </div>
+          <p class="cp-note">同事看到的是你的匿名别名，无法知道你是谁；发布记录与账号的关联只保存在平台后台，用于处理违规举报。</p>
         </form>
         <div class="pool-bar">
           <div class="sort" role="group" aria-label="排序"><button class="on" data-s="new" aria-pressed="true">最新</button><button data-s="hot" aria-pressed="false">最热</button></div>
+          <span class="sort-note">最新按发布时间排序，最热按「有同感」数量排序</span>
         </div>
         <div class="masonry" id="poolList"></div>
       </div>
@@ -280,10 +288,59 @@
 <!-- MINE -->
 <section class="view" data-view="mine" hidden>
   <div class="wrap mine">
-    <div class="mine-head"><div><p class="kicker">我的反馈</p><h1 class="h2">你提交过的建议</h1></div>
-      <div class="filters" role="tablist" aria-label="筛选"><button class="f on" data-f="all" role="tab" aria-selected="true">全部</button><button class="f" data-f="supply" role="tab">待我补充<span class="f-badge" id="fSupplyN" hidden></span></button><button class="f" data-f="pending" role="tab">待受理</button><button class="f" data-f="doing" role="tab">办理中</button><button class="f" data-f="review" role="tab">回复待审核</button><button class="f" data-f="replied" role="tab">已回复</button><button class="f" data-f="closed" role="tab">已办结</button><button class="f" data-f="ended" role="tab">已撤回/驳回</button></div>
+    <div class="mine-head">
+      <div class="mine-title"><h1 class="h2">我的反馈</h1><a class="btn primary" href="#/write">写建议</a></div>
+      <div class="mine-tools"><input id="mineSearch" type="search" placeholder="搜索标题或编号，如 DAG-20261022" aria-label="搜索我的反馈"></div>
+      <div class="filters" role="tablist" aria-label="筛选"><button class="f on" data-f="all" role="tab" aria-selected="true">全部</button><button class="f" data-f="mine" role="tab" aria-selected="false">待我处理<span class="f-badge" id="fSupplyN" hidden></span></button><button class="f" data-f="doing" role="tab" aria-selected="false">办理中</button><button class="f" data-f="replied" role="tab" aria-selected="false">已回复</button><button class="f" data-f="ended" role="tab" aria-selected="false">已结束</button><span class="fine-wrap"><button class="f fine-btn" id="fineBtn" aria-haspopup="true" aria-expanded="false">更多状态</button><span class="fine-menu" id="fineMenu" hidden><button data-fine="PENDING_ACCEPTANCE">待受理</button><button data-fine="ACCEPTED">已受理</button><button data-fine="PROCESSING">办理中</button><button data-fine="WAITING_EMPLOYEE">待我补充</button><button data-fine="WAITING_REVIEW">回复待审核</button><button data-fine="REPLIED">已回复</button><button data-fine="CLOSED">已办结</button><button data-fine="REOPENED">已重新办理</button><button data-fine="WITHDRAWN">已撤回</button><button data-fine="REJECTED">已驳回</button></span></span></div>
     </div>
     <ul class="flist" id="flist"></ul>
+  </div>
+</section>
+
+<!-- NOTIFICATIONS -->
+<section class="view" data-view="notifications" hidden>
+  <div class="wrap notif-page">
+    <div class="mine-title"><div><p class="kicker">通知中心</p><h1 class="h2">全部通知</h1></div><button class="btn ghost sm" id="notifAllRead" type="button">全部已读</button></div>
+    <ul class="notif-full" id="notifFull"></ul>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section class="view" data-view="settings" hidden>
+  <div class="wrap settings">
+    <p class="kicker">个人设置</p><h1 class="h2">个人设置</h1>
+    <div class="set-group">
+      <h3>账号与安全</h3>
+      <div class="set-row"><div><b>账号</b><p>登录用的账号名</p></div><span class="set-val" id="setAccount">—</span></div>
+      <div class="set-row"><div><b>绑定邮箱</b><p>用于接收办理进度邮件和找回密码</p></div><span class="set-val" id="setEmail">—</span></div>
+      <form class="set-form" id="pwForm">
+        <b class="set-form-t">修改密码</b>
+        <label class="am-field"><span>当前密码</span><input id="pwCur" type="password" autocomplete="current-password"></label>
+        <label class="am-field"><span>新密码（至少 8 位）</span><input id="pwNew" type="password" autocomplete="new-password"></label>
+        <label class="am-field"><span>确认新密码</span><input id="pwNew2" type="password" autocomplete="new-password"></label>
+        <p class="am-err" id="pwErr" hidden></p>
+        <button class="btn primary" id="pwBtn" type="submit">保存新密码</button>
+      </form>
+      <div class="set-row"><div><b>账号问题处理</b><p>忘记账号、无法登录等需要核对身份的事项，请到综合办公室当面处理。</p></div><a class="btn ghost sm" href="#/help" data-scroll="contact">联系方式</a></div>
+    </div>
+    <div class="set-group" id="setNotif">
+      <h3>通知偏好</h3>
+      <div class="set-row"><div><b>浏览器推送</b><p id="setPushState">正在读取这台设备的推送状态…</p></div><span class="set-btns"><button class="btn ghost sm" id="setPushHelp" type="button" hidden>查看开启方法</button><button class="btn primary sm" id="setPushBtn" type="button">开启</button></span></div>
+      <p class="set-note">部门答复、补充材料、办理进度三类提醒目前统一通过站内通知和浏览器推送发送，暂不支持按类型分别关闭。推送只发到开启它的这台设备。</p>
+    </div>
+    <div class="set-group">
+      <h3>阅读与动效</h3>
+      <div class="set-row"><div><b>字号</b><p>只影响这台设备上的显示</p></div><span class="seg" role="group" aria-label="字号"><button type="button" id="setFontStd">标准</button><button type="button" id="setFontLarge">大字号</button></span></div>
+      <div class="set-row"><div><b>减少动态效果</b><p>减少开场、轮换和过渡动画；默认跟随系统设置</p></div><span class="seg" role="group" aria-label="减少动态效果"><button type="button" id="setRmAuto">跟随系统</button><button type="button" id="setRmOn">开启</button><button type="button" id="setRmOff">关闭</button></span></div>
+      <div class="set-row"><div><b>开场动画</b><p>打开站点时播放一次开场（只在首次访问时出现）</p></div><span class="seg" role="group" aria-label="开场动画"><button type="button" id="setSplashOn">开启</button><button type="button" id="setSplashOff">关闭</button></span></div>
+      <p class="set-note" id="setSaved">阅读与动效为本机设置，修改后自动保存。</p>
+    </div>
+    <div class="set-group">
+      <h3>隐私与帮助</h3>
+      <div class="set-row"><div><b>身份可见范围</b><p>承办部门看不到你的姓名、账号和邮箱；树洞发言对同事以匿名别名展示。这一规则由平台统一执行，不可更改。</p></div><a class="btn ghost sm" href="#/help" data-scroll="privacy">隐私说明</a></div>
+      <div class="set-row"><div><b>草稿保存</b><p id="setDraftState">草稿保存在这台设备上，换设备或换浏览器看不到。</p></div><button class="btn ghost sm" id="setClearDraft" type="button">清除本机草稿</button></div>
+      <div class="set-row"><div><b>联系管理员</b><p>平台使用问题请到综合办公室找平台管理员当面处理。</p></div><a class="btn ghost sm" href="#/help" data-scroll="contact">联系方式</a></div>
+    </div>
   </div>
 </section>
 
@@ -304,7 +361,7 @@
         <details><summary>对答复不满意怎么办？</summary><p>在详情页点击「继续反馈」写下补充说明，建议会重新进入办理；已办结的建议在 30 天内也可以继续反馈。你也可以评价时选择重新办理。</p></details>
         <details><summary>可以撤回建议吗？</summary><p>受理前（待受理、待分派或退回补充状态）可以在详情页直接撤回；受理后不能直接撤回，可在详情页「申请关闭」，管理员确认后结束办理。</p></details>
         <details><summary>部门让我补充材料，怎么办？</summary><p>详情页顶部会写明退回时间、原因和需要补充的内容。补好后点「发送补充」，建议会重新进入办理；你历次补充的正文、时间和送达状态都会保留在详情里，随时可查。</p></details>
-        <details><summary>怎么知道办到哪一步了？</summary><p>「我的反馈」详情里有提交、受理、办理、回复四步进度和预计答复日期；状态一有变化，站内通知和手机推送（需在通知面板开启）会第一时间告诉你。</p></details>
+        <details><summary>怎么知道办到哪一步了？</summary><p>「我的反馈」详情里有提交、受理、办理、回复四步进度和预计答复日期；状态一有变化，站内通知和浏览器推送（需在通知中心开启）会第一时间告诉你。</p></details>
         <details><summary>紧急安全隐患怎么报？</summary><p>请立即拨打安全值班电话 8110。本平台不适合处理需要即刻响应的事项。</p></details>
       </div>
     </div>
@@ -340,7 +397,7 @@
   </article>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/js/app-mobile2.js?v=20261023h"></script>
+<script src="/static/js/app-mobile2.js?v=20261024a"></script>
 
 </body>
 </html>

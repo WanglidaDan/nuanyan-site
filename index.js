@@ -24,10 +24,11 @@ window.jumpTo = jumpTo;
 (() => {
   var sp = document.getElementById('splash');
   if(!sp) return;
-  var seen = false; try { seen = !!sessionStorage.nySplash; } catch (e) {}
+  var seen = false, splashOff = false, rmSet = false;
+  try { seen = !!localStorage.nySplashSeen; const s = JSON.parse(localStorage.getItem('ny-settings') || '{}'); splashOff = s.splash === false; rmSet = s.rm === 'on'; } catch (e) {}
   var deep = !!location.hash && location.hash !== '#/' && location.hash !== '#';
-  if (seen || deep) { sp.remove(); try { sessionStorage.nySplash = '1'; } catch (e) {} return; }
-  try { sessionStorage.nySplash = '1'; } catch (e) {}
+  if (seen || deep || splashOff || rmSet) { sp.remove(); try { localStorage.nySplashSeen = '1'; } catch (e) {} return; }
+  try { localStorage.nySplashSeen = '1'; } catch (e) {}
   var done = false;
   function dismiss(){
     if(done) return; done = true;
@@ -58,7 +59,19 @@ const fGroup = code => code === 'WAITING_EMPLOYEE' ? 'supply'
   : code === 'REJECTED' || code === 'WITHDRAWN' ? 'ended' : 'doing';
 const fmtDay = iso => { const d = new Date(iso); return isNaN(d) ? '' : (d.getMonth() + 1) + '月' + d.getDate() + '日'; };
 const fmtTime = iso => { const d = new Date(iso); return isNaN(d) ? '' : fmtDay(iso) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
-let myItems = [], filter = 'all';
+let myItems = [], filter = 'all', mineQuery = '', mineScrollY = 0;
+const mainGroup = code => code === 'WAITING_EMPLOYEE' ? 'mine'
+  : code === 'REPLIED' ? 'replied'
+  : code === 'CLOSED' || code === 'WITHDRAWN' || code === 'REJECTED' ? 'ended' : 'doing';
+function itemMatches(i) {
+  if (mineQuery) {
+    const q = mineQuery.toLowerCase();
+    if (!(i.title || '').toLowerCase().includes(q) && !(i.public_id || '').toLowerCase().includes(q)) return false;
+  }
+  if (filter === 'all') return true;
+  if (filter.startsWith('fine:')) return i.status === filter.slice(5);
+  return mainGroup(i.status) === filter;
+}
 async function loadMine() {
   const list = $('#flist'); if (!list) return;
   list.innerHTML = '<li class="empty">正在加载…</li>';
@@ -66,22 +79,27 @@ async function loadMine() {
     const data = await apiCall('/feedbacks');
     myItems = (Array.isArray(data) ? data : []).slice().sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     renderList();
-  } catch (e) { list.innerHTML = '<li class="empty">加载失败，请刷新重试。</li>'; }
+  } catch (e) { list.innerHTML = '<li class="empty">加载失败，请检查网络后重试。<button type="button" class="link" id="fRetry">重新加载</button></li>'; const rb = $('#fRetry'); if (rb) rb.onclick = () => loadMine(); }
 }
 function updateFilterCounts() {
   const b = $('#fSupplyN'); if (!b) return;
   const n = myItems.filter(i => i.status === 'WAITING_EMPLOYEE').length;
   b.hidden = !n; b.textContent = n;
 }
+function syncFilterChips() {
+  $$('.filters .f[data-f]').forEach(x => { const on = filter === x.dataset.f; x.classList.toggle('on', on); x.setAttribute('aria-selected', String(on)); });
+  const fb = $('#fineBtn'); if (fb) fb.classList.toggle('on', filter.startsWith('fine:'));
+}
 function renderList() {
   const el = $('#flist'); if (!el) return;
-  updateFilterCounts();
-  const rows = myItems.filter(i => filter === 'all' || fGroup(i.status) === filter);
+  updateFilterCounts(); syncFilterChips();
+  const rows = myItems.filter(itemMatches);
   if (!rows.length) {
-    el.innerHTML = !myItems.length
-      ? '<li class="empty">你还没有提交过建议，去<a href="#/write">写一条</a>试试。</li>'
-      : '<li class="empty">暂无该状态的建议。<button type="button" class="link" id="fShowAll">查看全部</button></li>';
-    const b = $('#fShowAll'); if (b) b.onclick = () => { const a = $('.f[data-f="all"]'); if (a) a.click(); };
+    if (!myItems.length) el.innerHTML = '<li class="empty">你还没有提交过建议，去<a href="#/write">写一条</a>试试。</li>';
+    else if (mineQuery) el.innerHTML = `<li class="empty">没有找到与「${escHtml(mineQuery)}」相关的建议。<button type="button" class="link" id="fClearQ">清除搜索</button></li>`;
+    else el.innerHTML = '<li class="empty">暂无该状态的建议。<button type="button" class="link" id="fShowAll">查看全部</button></li>';
+    const b = $('#fShowAll'); if (b) b.onclick = () => { filter = 'all'; renderList(); };
+    const cq = $('#fClearQ'); if (cq) cq.onclick = () => { mineQuery = ''; const s = $('#mineSearch'); if (s) s.value = ''; renderList(); };
     return;
   }
   el.innerHTML = rows.map(i => {
@@ -89,15 +107,27 @@ function renderList() {
     let dept = i.responsible_department_name || '';
     if (dept && (!empIds.length || (i.responsible_department_id && !empIds.includes(i.responsible_department_id)))) dept += '（平台分派）';
     if (!dept && !empIds.length) dept = '由平台分派';
+    const act = i.status === 'WAITING_EMPLOYEE' ? '<button type="button" class="f-act">去补充</button>' : '';
     return `
-   <li><button class="fitem reveal in" data-id="${i.public_id}" aria-label="查看详情：${escHtml(i.title)}">
-     <div><div class="meta"><span class="mono">${i.public_id}</span><span>${escHtml(dept)}</span><span>${fmtDay(i.created_at)} 提交</span></div>
-     <h3>${escHtml(i.title)}</h3><p class="ex">${escHtml(i.latest_progress || i.description || '')}</p></div>
-     <span class="pill ${pc(i.status)}">${escHtml(i.status_label)}</span><svg class="ic"><use href="#chev"/></svg></button></li>`;
+   <li class="frow"><article class="fitem" data-id="${i.public_id}" tabindex="0" role="button" aria-label="查看详情：${escHtml(i.title)}">
+     <div class="f-top"><h3>${escHtml(i.title)}</h3><span class="pill ${pc(i.status)}">${escHtml(i.status_label)}</span></div>
+     <p class="f-dept">承办部门：${escHtml(dept)}</p>
+     <p class="ex">${escHtml(i.latest_progress || i.description || '')}</p>
+     <div class="f-meta"><span class="mono">${i.public_id}</span><span>${fmtDay(i.created_at)} 提交</span><span class="f-due">预计答复：${i.due_at ? fmtDay(i.due_at) : '暂未确定'}</span>${act}</div>
+   </article></li>`;
   }).join('');
 }
-$$('.f').forEach(b => b.onclick = () => { $$('.f').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', x === b); }); filter = b.dataset.f; renderList(); });
+$$('.filters .f[data-f]').forEach(b => b.onclick = () => { filter = b.dataset.f; renderList(); });
+const fineBtn = $('#fineBtn'), fineMenu = $('#fineMenu');
+if (fineBtn && fineMenu) {
+  fineBtn.onclick = e => { e.stopPropagation(); const o = fineMenu.hidden; fineMenu.hidden = !o; fineBtn.setAttribute('aria-expanded', String(o)); };
+  fineMenu.addEventListener('click', e => { const b = e.target.closest('[data-fine]'); if (!b) return; filter = 'fine:' + b.dataset.fine; fineMenu.hidden = true; fineBtn.setAttribute('aria-expanded', 'false'); renderList(); });
+  document.addEventListener('click', e => { if (!e.target.closest('.fine-wrap')) { fineMenu.hidden = true; fineBtn.setAttribute('aria-expanded', 'false'); } });
+}
+const mineSearchEl = $('#mineSearch');
+if (mineSearchEl) mineSearchEl.addEventListener('input', () => { mineQuery = mineSearchEl.value.trim(); renderList(); });
 $('#flist').addEventListener('click', e => { const b = e.target.closest('.fitem'); if (b) openDrawer(b.dataset.id, b); });
+$('#flist').addEventListener('keydown', e => { const b = e.target.closest('.fitem'); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openDrawer(b.dataset.id, b); } });
 
 /* drawer */
 let lastFocus;
@@ -298,7 +328,6 @@ async function apiCall(path, method = 'GET', body = null) {
 
 function renderAuth() {
   const logged = isLogged();
-  $('#guestToggle').textContent = guestView ? '退出访客视图' : '切换访客视图';
   document.body.classList.toggle('guest', !logged);
   ab.hidden = !logged;
   $('#loginBtn').hidden = logged;
@@ -385,13 +414,8 @@ $('#logoutYes').onclick = async () => {
   currentUser = null; guestView = false; sessionStorage.removeItem('authAccount');
   renderAuth(); location.hash = '#/'; toast('已退出登录');
 };
-$('#guestToggle').onclick = () => {
-  guestView = !guestView;
-  closeMenu();
-  renderAuth();
-  toast(guestView ? '已进入访客视图：顶部为未登录状态，写建议和我的反馈需登录' : '已回到账户视图');
-};
-$('#settingsBtn').onclick = () => { closeMenu(); toast('个人设置暂未开放'); };
+$('#settingsBtn').onclick = () => { closeMenu(); location.hash = '#/settings'; };
+$('#helpBtn').onclick = () => { closeMenu(); location.hash = '#/help'; };
 
 // 页面加载时检查登录状态
 checkAuth();
@@ -418,89 +442,190 @@ async function loadNotifs(force) {
     updateBell(); renderNotifs();
   } catch (e) { notifLoadedAt = 0; }
 }
+function notifTitle(n) {
+  const t = n.title || '反馈有新进展';
+  if (t.includes('《') || !n.feedback_title) return t;
+  const ft = n.feedback_title.length > 18 ? n.feedback_title.slice(0, 18) + '…' : n.feedback_title;
+  return `《${ft}》${t}`;
+}
+function notifItemHTML(n) {
+  return `<button type="button" class="bell-item${n.is_read ? '' : ' unread'}" data-pub="${escHtml(n.public_id || '')}" data-nid="${n.id}"><span class="bell-dot" aria-hidden="true"></span><span class="bell-main"><span class="bell-top"><b>${escHtml(notifTitle(n))}</b><time>${fmtTime(n.created_at)}</time></span><span class="bell-body">${escHtml(n.content || '')}</span><span class="bell-meta">${escHtml(n.public_id || '')}</span></span></button>`;
+}
 function renderNotifs() {
   const el = $('#bellList'); if (!el) return;
-  el.innerHTML = notifItems.length ? notifItems.map(n => `<button type="button" class="bell-item${n.is_read ? '' : ' unread'}" data-pub="${escHtml(n.public_id || '')}" data-nid="${n.id}"><span class="bell-dot" aria-hidden="true"></span><span class="bell-main"><b>${escHtml(n.title || '反馈有新进展')}</b><span>${escHtml(n.content || '')}</span><time>${escHtml(n.public_id || '')} · ${fmtTime(n.created_at)}</time></span></button>`).join('')
+  el.innerHTML = notifItems.length ? notifItems.slice(0, 12).map(notifItemHTML).join('')
     : '<p class="bell-empty">暂时没有通知，反馈有新进展会第一时间告诉你。</p>';
 }
-$('#bellBtn').onclick = e => { e.stopPropagation(); const m = $('#bellMenu'); const o = m.hidden; closeBell(); closeMenu(); if (o) { m.hidden = false; $('#bellBtn').setAttribute('aria-expanded', true); loadNotifs(true); pushRefresh(); } };
-document.addEventListener('click', e => { if (!e.target.closest('.bell-wrap, .bell-menu')) closeBell(); });
-$('#bellAll').onclick = async () => {
-  try { await apiCall('/notifications/read-all', 'POST'); } catch (e) {}
-  notifItems.forEach(n => { n.is_read = 1; }); notifUnread = 0; updateBell(); renderNotifs();
-};
-$('#bellList').addEventListener('click', async e => {
-  const b = e.target.closest('.bell-item'); if (!b) return;
-  const pub = b.dataset.pub, nid = b.dataset.nid;
+function renderNotifPage() {
+  const el = $('#notifFull'); if (!el) return;
+  el.innerHTML = notifItems.length ? notifItems.map(n => `<li>${notifItemHTML(n)}</li>`).join('')
+    : '<li class="empty">暂时没有通知。</li>';
+}
+async function openNotif(pub, nid) {
   const item = notifItems.find(n => String(n.id) === String(nid));
   if (item && !item.is_read) {
-    item.is_read = 1; notifUnread = Math.max(0, notifUnread - 1); updateBell();
+    item.is_read = 1; notifUnread = Math.max(0, notifUnread - 1); updateBell(); renderNotifs(); renderNotifPage();
     try { await apiCall('/notifications/' + nid + '/read', 'POST'); } catch (e) {}
   }
-  closeBell();
   if (!pub) return;
   const cur = location.hash.replace(/^#/, '').split('?')[0];
   if (cur === '/mine') { loadMine().then(() => openDrawer(pub)); }
   else location.hash = '#/mine?open=' + encodeURIComponent(pub);
+}
+$('#bellBtn').onclick = e => { e.stopPropagation(); const m = $('#bellMenu'); const o = m.hidden; closeBell(); closeMenu(); if (o) { m.hidden = false; $('#bellBtn').setAttribute('aria-expanded', true); loadNotifs(true); pushRefresh(); } };
+document.addEventListener('click', e => { if (!e.target.closest('.bell-wrap, .bell-menu')) closeBell(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeBell(); const fm = $('#fineMenu'); if (fm) fm.hidden = true; } });
+async function markAllRead() {
+  try { await apiCall('/notifications/read-all', 'POST'); } catch (e) {}
+  notifItems.forEach(n => { n.is_read = 1; }); notifUnread = 0; updateBell(); renderNotifs(); renderNotifPage();
+}
+$('#bellAll').onclick = markAllRead;
+const notifAllReadBtn = $('#notifAllRead'); if (notifAllReadBtn) notifAllReadBtn.onclick = markAllRead;
+const bellViewAllBtn = $('#bellViewAll'); if (bellViewAllBtn) bellViewAllBtn.onclick = () => { closeBell(); location.hash = '#/notifications'; };
+$('#bellList').addEventListener('click', e => {
+  const b = e.target.closest('.bell-item'); if (!b) return;
+  closeBell(); openNotif(b.dataset.pub, b.dataset.nid);
+});
+const notifFullEl = $('#notifFull');
+if (notifFullEl) notifFullEl.addEventListener('click', e => {
+  const b = e.target.closest('.bell-item'); if (!b) return;
+  openNotif(b.dataset.pub, b.dataset.nid);
 });
 
-/* ===== 手机推送（Web Push） ===== */
+/* ===== 浏览器推送（Web Push） ===== */
 const PUSH_OK = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
 function isStandalone() { return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
 function b64ToU8(b64) { const p = '='.repeat((4 - b64.length % 4) % 4); const raw = atob((b64 + p).replace(/-/g, '+').replace(/_/g, '/')); const a = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) a[i] = raw.charCodeAt(i); return a; }
 async function pushRefresh() {
-  const btn = $('#pushBtn'), hint = $('#pushHint');
-  if (!btn) return;
-  if (!PUSH_OK) { btn.hidden = true; if (hint) hint.textContent = '当前浏览器不支持推送'; return; }
-  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone()) { btn.disabled = true; btn.textContent = '开启'; if (hint) hint.textContent = '请先把本站添加到主屏幕，再从桌面图标打开来开启'; return; }
-  if (Notification.permission === 'denied') { btn.disabled = true; btn.textContent = '开启'; if (hint) hint.textContent = '通知已被系统拒绝，请在浏览器设置中允许'; return; }
-  btn.disabled = false;
+  const btn = $('#pushBtn'), hint = $('#pushHint'), help = $('#pushHelp');
+  const sBtn = $('#setPushBtn'), sHelp = $('#setPushHelp'), sState = $('#setPushState');
+  const bell = (h, label, showHelp, dis) => { if (hint) hint.textContent = h || ''; if (btn) { btn.hidden = !label; btn.textContent = label || ''; btn.disabled = !!dis; } if (help) help.hidden = !showHelp; };
+  const sett = (txt, label, showHelp, dis) => { if (sState) sState.textContent = txt || ''; if (sBtn) { sBtn.hidden = !label; sBtn.textContent = label || ''; sBtn.disabled = !!dis; } if (sHelp) sHelp.hidden = !showHelp; };
+  if (!PUSH_OK) { bell('当前浏览器不支持推送', '', false); sett('这台设备的浏览器不支持推送通知。', '', false); return; }
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !isStandalone()) { bell('请先把本站添加到主屏幕，再从桌面图标打开来开启', '开启', false, true); sett('在 iPhone 上，请先把本站添加到主屏幕，再从桌面图标打开来开启推送。', '开启', false, true); return; }
+  if (Notification.permission === 'denied') { bell('通知权限已被拒绝', '', true); sett('通知权限已被浏览器拒绝，需要先在浏览器设置中允许，才能开启。', '', true); return; }
   try {
     const reg = await navigator.serviceWorker.getRegistration();
     const sub = reg ? await reg.pushManager.getSubscription() : null;
-    btn.textContent = sub ? '已开启' : '开启';
-    btn.classList.toggle('on', !!sub);
-    if (hint) hint.textContent = sub ? '反馈有进展会推送到这台手机' : '开启后，反馈有进展第一时间推送';
-  } catch (e) { btn.textContent = '开启'; }
+    if (sub) { bell('反馈有进展会推送到这台设备', '已开启', false); sett('已开启：反馈有进展会推送到这台设备。', '已开启', false); }
+    else { bell('开启后，反馈有进展第一时间推送', '开启', false); sett('尚未开启。开启后，反馈有进展会第一时间推送到这台设备。', '开启', false); }
+    if (btn) btn.classList.toggle('on', !!sub);
+    if (sBtn) sBtn.classList.toggle('on', !!sub);
+  } catch (e) { bell('开启后，反馈有进展第一时间推送', '开启', false); sett('尚未开启。', '开启', false); }
 }
-const pushBtnEl = $('#pushBtn');
-if (pushBtnEl) pushBtnEl.onclick = async () => {
-  if (!PUSH_OK) return;
-  pushBtnEl.disabled = true;
+async function togglePush() {
+  if (!PUSH_OK || Notification.permission === 'denied') return;
   try {
     const reg = await navigator.serviceWorker.register('/sw.js');
     const existing = await reg.pushManager.getSubscription();
     if (existing) {
       try { await apiCall('/push/unsubscribe', 'POST', { endpoint: existing.endpoint }); } catch (e) {}
       await existing.unsubscribe();
-      toast('手机推送已关闭');
+      toast('浏览器推送已关闭');
     } else {
       const perm = await Notification.requestPermission();
-      if (perm !== 'granted') { toast('没有拿到通知权限，可在系统设置里允许'); pushRefresh(); return; }
+      if (perm !== 'granted') { toast('没有拿到通知权限，可在浏览器设置里允许'); pushRefresh(); return; }
       const keyRes = await apiCall('/push/public-key');
       const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(keyRes.public_key) });
       const sj = sub.toJSON();
       await apiCall('/push/subscribe', 'POST', { endpoint: sj.endpoint, keys: { p256dh: sj.keys.p256dh, auth: sj.keys.auth } });
-      toast('手机推送已开启');
+      toast('浏览器推送已开启');
     }
   } catch (e) { toast('开启失败，请稍后再试'); }
   pushRefresh();
+}
+const pushBtnEl = $('#pushBtn');
+if (pushBtnEl) pushBtnEl.onclick = togglePush;
+const setPushBtnEl = $('#setPushBtn');
+if (setPushBtnEl) setPushBtnEl.onclick = togglePush;
+function showPushHelp() {
+  toast('在浏览器地址栏左侧的站点设置里，把通知改为允许，然后回到这里点开启');
+  const sState = $('#setPushState');
+  if (sState) sState.textContent = '开启方法：打开浏览器地址栏左侧的站点设置（或浏览器设置 → 网站设置 → 通知），找到 lidawang.work 并改为允许；然后回到这里点「开启」。';
+}
+const pushHelpEl = $('#pushHelp');
+if (pushHelpEl) pushHelpEl.onclick = () => { location.hash = '#/settings'; setTimeout(showPushHelp, 350); };
+const setPushHelpEl = $('#setPushHelp');
+if (setPushHelpEl) setPushHelpEl.onclick = showPushHelp;
+
+/* ===== 个人设置 ===== */
+const NYSET_KEY = 'ny-settings';
+let nyset = { font: 'std', rm: 'auto', splash: true };
+try { const s = JSON.parse(localStorage.getItem(NYSET_KEY) || '{}'); if (s && typeof s === 'object') nyset = Object.assign(nyset, s); } catch (e) {}
+function saveNyset() { try { localStorage.setItem(NYSET_KEY, JSON.stringify(nyset)); } catch (e) {} const el = $('#setSaved'); if (el) el.textContent = '已自动保存 · 阅读与动效为本机设置，只影响这台设备。'; }
+function effRM() { return nyset.rm === 'on' || (nyset.rm === 'auto' && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+function applyNyset() {
+  document.documentElement.classList.toggle('fs-large', nyset.font === 'large');
+  document.documentElement.classList.toggle('rm-on', nyset.rm === 'on');
+  const seg = (id, on) => { const b = $(id); if (b) b.classList.toggle('on', !!on); };
+  seg('#setFontStd', nyset.font === 'std'); seg('#setFontLarge', nyset.font === 'large');
+  seg('#setRmAuto', nyset.rm === 'auto'); seg('#setRmOn', nyset.rm === 'on'); seg('#setRmOff', nyset.rm === 'off');
+  seg('#setSplashOn', nyset.splash !== false); seg('#setSplashOff', nyset.splash === false);
+}
+function bindSeg(id, fn) { const b = $(id); if (b) b.onclick = () => { fn(); saveNyset(); applyNyset(); toast('已保存'); }; }
+bindSeg('#setFontStd', () => { nyset.font = 'std'; });
+bindSeg('#setFontLarge', () => { nyset.font = 'large'; });
+bindSeg('#setRmAuto', () => { nyset.rm = 'auto'; });
+bindSeg('#setRmOn', () => { nyset.rm = 'on'; });
+bindSeg('#setRmOff', () => { nyset.rm = 'off'; });
+bindSeg('#setSplashOn', () => { nyset.splash = true; });
+bindSeg('#setSplashOff', () => { nyset.splash = false; });
+applyNyset();
+function draftKeys() { const ks = []; try { for (let k = 0; k < localStorage.length; k++) { const key = localStorage.key(k); if (key && key.startsWith('ny-draft-')) ks.push(key); } } catch (e) {} return ks; }
+function renderDraftState() { const el = $('#setDraftState'); if (!el) return; const n = draftKeys().length; el.textContent = n ? `当前有 ${n} 份未提交的草稿保存在这台设备上，换设备或换浏览器看不到。` : '当前没有保存在本机的草稿。草稿只保存在这台设备上，换设备看不到。'; }
+let draftArm = false, draftArmT = null;
+const clearDraftBtn = $('#setClearDraft');
+if (clearDraftBtn) clearDraftBtn.onclick = () => {
+  if (!draftKeys().length) { toast('本机没有可清除的草稿'); return; }
+  if (!draftArm) { draftArm = true; clearDraftBtn.textContent = '再点一次确认清除'; draftArmT = setTimeout(() => { draftArm = false; clearDraftBtn.textContent = '清除本机草稿'; }, 4000); return; }
+  clearTimeout(draftArmT); draftArm = false; clearDraftBtn.textContent = '清除本机草稿';
+  draftKeys().forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  renderDraftState(); toast('本机草稿已清除');
 };
+const pwForm = $('#pwForm');
+if (pwForm) pwForm.onsubmit = async e => {
+  e.preventDefault();
+  const cur = $('#pwCur').value, nw = $('#pwNew').value, nw2 = $('#pwNew2').value;
+  const err = $('#pwErr'); const showE = m => { err.textContent = m; err.hidden = false; };
+  err.hidden = true;
+  if (!cur) return showE('请输入当前密码');
+  if (nw.length < 8) return showE('新密码至少 8 位');
+  if (nw !== nw2) return showE('两次输入的新密码不一致');
+  if (nw === cur) return showE('新密码不能与当前密码相同');
+  const btn = $('#pwBtn'); btn.disabled = true; btn.textContent = '保存中…';
+  try {
+    await apiCall('/auth/change-password', 'POST', { current_password: cur, new_password: nw });
+    $('#pwCur').value = ''; $('#pwNew').value = ''; $('#pwNew2').value = '';
+    toast('密码已修改');
+  } catch (e2) { showE(e2.message || '修改失败，请稍后重试'); }
+  btn.disabled = false; btn.textContent = '保存新密码';
+};
+function renderSettings() {
+  const acc = $('#setAccount'); if (acc) acc.textContent = (currentUser && currentUser.account) || '—';
+  const em = $('#setEmail'); if (em) em.textContent = (currentUser && currentUser.email) || '未绑定';
+  renderDraftState(); applyNyset(); pushRefresh();
+}
+/* 首页待办提示（真实数据） */
+async function loadTodoBanner() {
+  const b = $('#todoBanner'); if (!b) return;
+  if (!isLogged()) { b.hidden = true; return; }
+  try {
+    const data = await apiCall('/feedbacks');
+    const n = (Array.isArray(data) ? data : []).filter(i => i.status === 'WAITING_EMPLOYEE').length;
+    if (n > 0) { $('#todoBannerTxt').textContent = `你有 ${n} 条建议需要补充材料`; b.hidden = false; } else b.hidden = true;
+  } catch (e) { b.hidden = true; }
+}
+const tbBtn = $('#todoBannerBtn');
+if (tbBtn) tbBtn.onclick = () => { filter = 'mine'; };
 
 /* write flow */
 let step = 1; const draft = { topic: null, dept: null };
 $$('.topic').forEach(t => t.onclick = () => {
     const on = t.getAttribute('aria-checked') === 'true';
-    if (t.dataset.platform) {
-      $$('.topic').forEach(x => x.setAttribute('aria-checked', 'false'));
-      if (!on) t.setAttribute('aria-checked', 'true');
-    } else {
-      const plat = $('.topic[data-platform]'); if (plat) plat.setAttribute('aria-checked', 'false');
-      const cur = $$('.topic:not([data-platform])[aria-checked="true"]');
-      if (on) { t.setAttribute('aria-checked', 'false'); }
-      else if (cur.length < 2) { t.setAttribute('aria-checked', 'true'); }
-      else { toast('最多选择 2 个部门'); return; }
-    }
+    const cur = $$('.topic[aria-checked="true"]');
+    if (on) { t.setAttribute('aria-checked', 'false'); }
+    else if (cur.length < 2) { t.setAttribute('aria-checked', 'true'); }
+    else { toast('最多选择 2 个部门'); return; }
     const sel = $$('.topic[aria-checked="true"]').map(x => x.dataset.d);
     draft.dept = sel.join('、'); draft.topic = sel.join('、');
     update(); saveDraft();
@@ -518,7 +643,7 @@ body.addEventListener('input', () => { touched = true; update(); saveDraft(); })
 body.addEventListener('blur', () => { touched = true; update(); });
 ttl.addEventListener('input', () => { update(); saveDraft(); });
 function validReason(s) {
-  if (s === 1) return draft.topic ? '' : '请先选择承办部门（1–2 个），或选「不确定，由平台分派」';
+  if (s === 1) return draft.topic ? '' : '请先选择承办部门（1–2 个）';
   if (s === 2) {
     if (ttl.value.trim().length < 4) return '标题至少填写 4 个字';
     if (body.value.trim().length < 10) return '建议内容还差 ' + (10 - body.value.trim().length) + ' 个字（至少 10 个字）';
@@ -528,6 +653,7 @@ function validReason(s) {
 function valid(s) { return !validReason(s); }
 let lastSubmission = null;
 function update() {
+  const dc = $('#deptCount'); if (dc) dc.textContent = '已选择 ' + $$('.topic[aria-checked="true"]').length + '/2 个部门';
   const n = body.value.trim().length;
   $('#count').textContent = `${body.value.length}/500`;
   hint.className = 'hint' + (n >= 10 ? ' ok' : touched && n > 0 ? ' warn' : '');
@@ -542,38 +668,106 @@ function go(s, back) {
   $('#pfoot').hidden = s === 4; $('.save-note').style.visibility = s === 4 ? 'hidden' : ''; $('.write-top .steps').style.visibility = s === 4 ? 'hidden' : '';
   $('#prevBtn').style.visibility = s === 1 ? 'hidden' : '';
   $('#nextBtn').textContent = s === 3 ? '确认提交' : '下一步';
-  if (s === 3) { $('#sDept').textContent = draft.dept === '平台分派' ? '由平台分派' : draft.dept; $('#sTitle').textContent = ttl.value.trim(); $('#sBody').textContent = body.value.trim(); }
-  if (s === 4 && lastSubmission) { const okMsg = $('#sOkMsg'); if (okMsg) okMsg.textContent = lastSubmission.department_ids && !lastSubmission.department_ids.length ? '建议已提交，平台会为你分派承办部门，进度会实时更新在「我的反馈」里。' : '建议已送达承办部门，进度会实时更新在「我的反馈」里。'; $('#sid').textContent = lastSubmission.public_id; document.querySelector('.success .btn.primary').href = '#/mine?open=' + lastSubmission.public_id; }
+  if (s === 3) { $('#sDept').textContent = draft.dept; $('#sTitle').textContent = ttl.value.trim(); $('#sBody').textContent = body.value.trim(); renderAttach(); }
+  if (s === 4 && lastSubmission) { const okMsg = $('#sOkMsg'); if (okMsg) okMsg.textContent = '建议已送达承办部门，进度会实时更新在「我的反馈」里。'; $('#sid').textContent = lastSubmission.public_id; document.querySelector('.success .btn.primary').href = '#/mine?open=' + lastSubmission.public_id; }
   update();
   const h = $(`.stage[data-step="${s}"] h1`); h.tabIndex = -1; h.focus({ preventScroll: true });
 }
 $('#nextBtn').onclick = async () => {
   const r = validReason(step);
-  if (r) { $('#footMsg').textContent = r; toast(r); return; }
+  if (r) {
+    $('#footMsg').textContent = r;
+    if (step === 2) {
+      const te = $('#ttlErr');
+      if (ttl.value.trim().length < 4) { if (te) { te.textContent = '标题至少填写 4 个字'; te.hidden = false; } ttl.focus(); }
+      else { if (te) te.hidden = true; body.focus(); }
+    }
+    toast(r); return;
+  }
   if (step < 3) { go(step + 1); return; }
   const btn = $('#nextBtn');
   btn.disabled = true; btn.textContent = '提交中…';
   try {
-    const platformPicked = !!$('.topic[data-platform][aria-checked="true"]');
-    const deptIds = platformPicked ? [] : $$('.topic[aria-checked="true"]').map(x => DEPT_IDS[x.dataset.d]).filter(Boolean);
-    lastSubmission = await apiCall('/feedbacks', 'POST', { title: ttl.value.trim(), description: body.value.trim(), department_ids: deptIds, need_reply: true });
+    const deptIds = $$('.topic[aria-checked="true"]').map(x => DEPT_IDS[x.dataset.d]).filter(Boolean);
+    lastSubmission = await apiCall('/feedbacks', 'POST', { title: ttl.value.trim(), description: body.value.trim(), department_ids: deptIds, need_reply: true, attachments: attachFiles.map(f => ({ name: f.name, mime_type: f.mime_type, content_base64: f.content_base64 })) });
     lastSubmission.department_ids = deptIds;
+    attachFiles = []; renderAttach();
     clearDraft();
     go(4);
-  } catch (e) { toast(e.message || '提交失败，请稍后重试'); }
+  } catch (e) { toast((e.message || '提交失败，请稍后重试') + '，内容已保留，可重试'); }
   btn.disabled = false; btn.textContent = '确认提交';
 };
+ttl.addEventListener('input', () => { const te = $('#ttlErr'); if (te && ttl.value.trim().length >= 4) te.hidden = true; });
 $('#prevBtn').onclick = () => go(step - 1, true);
 $$('[data-go]').forEach(b => b.onclick = () => go(+b.dataset.go, true));
-$('.attach').onclick = () => toast('附件上传为原型占位');
+/* 附件：真实上传（后端校验格式与大小）；图片先在本机压缩并重编码，顺带清除位置信息 */
+let attachFiles = [];
+const ATT_MAX = 5, ATT_TOTAL = 5 * 1024 * 1024;
+function attTotalSize() { return attachFiles.reduce((s, f) => s + f.size, 0); }
+function renderAttach() {
+  const ul = $('#attachList');
+  if (ul) ul.innerHTML = attachFiles.map((f, k) => `<li><span class="att-name">${escHtml(f.name)}</span><span class="att-size">${Math.max(1, Math.round(f.size / 1024))}KB</span><button type="button" class="att-x" data-k="${k}" aria-label="移除附件 ${escHtml(f.name)}">×</button></li>`).join('');
+  const sa = $('#sAttach'); if (sa) sa.textContent = attachFiles.length ? attachFiles.map(f => f.name).join('、') : '无';
+}
+const attachListEl = $('#attachList');
+if (attachListEl) attachListEl.addEventListener('click', e => { const x = e.target.closest('.att-x'); if (x) { attachFiles.splice(+x.dataset.k, 1); renderAttach(); } });
+function blobToAtt(blob, name) {
+  return new Promise(res => {
+    const r = new FileReader();
+    r.onload = () => res({ name, mime_type: blob.type || 'application/octet-stream', content_base64: String(r.result).split(',')[1], size: blob.size });
+    r.onerror = () => res(null);
+    r.readAsDataURL(blob);
+  });
+}
+function compressImage(file) {
+  return new Promise(res => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const max = 1600;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      const sc = Math.min(1, max / Math.max(w, h));
+      w = Math.max(1, Math.round(w * sc)); h = Math.max(1, Math.round(h * sc));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      cv.toBlob(b => res(b), 'image/jpeg', 0.82);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); res(null); };
+    img.src = url;
+  });
+}
+async function handleFiles(files) {
+  for (const file of files) {
+    if (attachFiles.length >= ATT_MAX) { toast('最多添加 5 个附件'); break; }
+    let blob = file, name = file.name;
+    if (/^image\/(jpeg|png|webp)$/.test(file.type) && file.size > 350 * 1024) {
+      const c = await compressImage(file);
+      if (c && c.size < file.size) { blob = c; name = file.name.replace(/\.[^.]+$/, '') + '.jpg'; }
+    }
+    if (blob.size > ATT_TOTAL) { toast(`「${file.name}」超过 5MB，未添加`); continue; }
+    if (attTotalSize() + blob.size > ATT_TOTAL) { toast('附件总计不能超过 5MB'); break; }
+    const att = await blobToAtt(blob, name);
+    if (att) attachFiles.push(att);
+  }
+  renderAttach();
+}
+const attachBtnEl = $('#attachBtn'); if (attachBtnEl) attachBtnEl.onclick = () => $('#attachInput').click();
+const photoBtnEl = $('#photoBtn'); if (photoBtnEl) photoBtnEl.onclick = () => $('#photoInput').click();
+const attachInputEl = $('#attachInput'); if (attachInputEl) attachInputEl.addEventListener('change', e => { handleFiles([...e.target.files]); e.target.value = ''; });
+const photoInputEl = $('#photoInput'); if (photoInputEl) photoInputEl.addEventListener('change', e => { handleFiles([...e.target.files]); e.target.value = ''; });
+[ttl, body].forEach(el => el.addEventListener('focus', () => setTimeout(() => { try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {} }, 350)));
 window.__nyFill = (t, b, topic) => { $$('.topic').find(x => x.dataset.t === topic).click(); ttl.value = t; body.value = b; touched = true; update(); };
 window.__nyGo = go;
 
 /* router */
 const views = $$('.view');
+let curView = '';
 function route() {
   const [path, q] = location.hash.replace(/^#/, '').split('?');
-  const name = { '/': 'home', '': 'home', '/write': 'write', '/mine': 'mine', '/help': 'help', '/pool': 'pool' }[path] || 'home';
+  const name = { '/': 'home', '': 'home', '/write': 'write', '/mine': 'mine', '/help': 'help', '/pool': 'pool', '/settings': 'settings', '/notifications': 'notifications' }[path] || 'home';
+  if (curView === 'mine' && name !== 'mine') mineScrollY = window.scrollY || 0;
+  curView = name;
   closeDrawer(); closeMenu();
   views.forEach(v => v.hidden = v.dataset.view !== name);
   $$('[data-nav]').forEach(a => { const on = a.dataset.nav === name; a.classList.toggle('on', on); on ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'); });
@@ -583,7 +777,7 @@ function route() {
     if (!authReady) { setTimeout(route, 400); return; }
     pendingRoute = location.hash; openAuth('login'); location.hash = '#/'; return;
   }
-  if (name === 'write') { draft.topic = null; draft.dept = null; $$('.topic').forEach(x => x.setAttribute('aria-checked', 'false')); ttl.value = body.value = ''; touched = false;
+  if (name === 'write') { draft.topic = null; draft.dept = null; $$('.topic').forEach(x => x.setAttribute('aria-checked', 'false')); ttl.value = body.value = ''; touched = false; attachFiles = []; renderAttach(); const te = $('#ttlErr'); if (te) te.hidden = true;
     const saved = loadDraft();
     if (saved) {
       (saved.depts || []).slice(0, 2).forEach(n => { const el = $$('.topic').find(x => x.dataset.d === n); if (el) el.setAttribute('aria-checked', 'true'); });
@@ -598,8 +792,17 @@ function route() {
   if (name === 'pool' && !sessionStorage.rulesSeen) { $('#rulesModal').hidden = false; lockBody(true); }
   if (name === 'mine') {
     if (!isLogged()) { if (!authReady) { setTimeout(route, 400); return; } pendingRoute = location.hash; openAuth('login'); location.hash = '#/'; return; }
-    loadMine().then(() => { const m = /open=([\w-]+)/.exec(q || ''); if (m) setTimeout(() => openDrawer(m[1]), 250); });
+    loadMine().then(() => { const m = /open=([\w-]+)/.exec(q || ''); if (m) setTimeout(() => openDrawer(m[1]), 250); else if (mineScrollY) jumpTo(mineScrollY); });
   }
+  if (name === 'settings') {
+    if (!isLogged()) { if (!authReady) { setTimeout(route, 400); return; } pendingRoute = location.hash; openAuth('login'); location.hash = '#/'; return; }
+    renderSettings();
+  }
+  if (name === 'notifications') {
+    if (!isLogged()) { if (!authReady) { setTimeout(route, 400); return; } pendingRoute = location.hash; openAuth('login'); location.hash = '#/'; return; }
+    renderNotifPage(); loadNotifs(true).then(renderNotifPage);
+  }
+  if (name === 'home') loadTodoBanner();
   if (name === 'help' && sessionStorage.scrollTo) { const el = $('#' + sessionStorage.scrollTo); sessionStorage.removeItem('scrollTo'); setTimeout(() => { el.scrollIntoView({ block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1700); }, 60); }
   if (isLogged()) loadNotifs();
   observe();
@@ -647,12 +850,12 @@ route();
 const $ = s => document.querySelector(s);
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const C = [
- {id:'NY-20261008-012',dept:'电子档案管理中心',t:'查阅室开放时间<br>希望延长到周六',s:'done',date:'10月8日',q:'工作日来查档案总要请假，查阅室周末不开门很不方便。希望周六上午也能开放。',m:'自 11 月起，查阅室每周六上午 9:00–12:00 开放试行三个月；到期根据利用量决定是否延续。',lim:'11 月 1 日起试行',rd:'10月16日',x:22,y:78,r:-8},
+ {id:'NY-20261008-012',dept:'电子档案管理中心',t:'查阅室开放时间<br>希望延长到周六',s:'done',date:'10月8日',q:'工作日来查档案总要请假，查阅室周末不开门很不方便。希望周六上午也能开放。',m:'查阅室周六开放已纳入服务优化安排，正在结合利用量测算开放时段，方案确定后在馆内公告。',lim:'开放方案论证中',rd:'10月16日',x:22,y:78,r:-8},
  {id:'NY-20261011-004',dept:'电子档案管理中心',t:'老照片数字化<br>进度希望加快',s:'doing',date:'10月11日',q:'馆藏 80 年代的老照片很多还没数字化，查的时候只能看原件，担心损坏。希望加快扫描进度。',x:158,y:58,r:-1},
- {id:'NY-20260929-021',dept:'运行管理部',t:'库房温湿度<br>希望定期公示',s:'done',date:'9月29日',q:'档案库房的温湿度情况我们看不到，心里没底。希望能像其他馆一样定期公示。',m:'库房温湿度监测屏已安装完成，每日在馆内公告栏和内网同步公示；超标自动预警。',lim:'10 月 15 日起执行',rd:'10月12日',x:296,y:82,r:7},
- {id:'NY-20261002-007',dept:'电子档案管理中心',t:'电子档案检索<br>速度慢结果不准',s:'done',date:'10月2日',q:'在系统里搜档案，关键词稍微模糊一点就搜不出来，只能一页页翻，效率太低。',m:'检索系统已升级模糊匹配和全文检索；10 月底前完成历史数据索引重建。',lim:'10 月 31 日前',rd:'10月14日',x:54,y:158,r:4},
+ {id:'NY-20260929-021',dept:'运行管理部',t:'库房温湿度<br>希望定期公示',s:'done',date:'9月29日',q:'档案库房的温湿度情况我们看不到，心里没底。希望能像其他馆一样定期公示。',m:'正在推进库房温湿度公示，拟在馆内公告栏和内网定期发布监测情况，超标预警功能同步完善中。',lim:'公示方式推进中',rd:'10月12日',x:296,y:82,r:7},
+ {id:'NY-20261002-007',dept:'电子档案管理中心',t:'电子档案检索<br>速度慢结果不准',s:'done',date:'10月2日',q:'在系统里搜档案，关键词稍微模糊一点就搜不出来，只能一页页翻，效率太低。',m:'检索系统已启动优化，模糊匹配和全文检索分批升级中，历史数据索引重建按计划推进。',lim:'分批升级中',rd:'10月14日',x:54,y:158,r:4},
  {id:'NY-20261013-015',dept:'综合办公室',t:'档案借阅审批<br>流程希望简化',s:'doing',date:'10月13日',q:'借一份档案要跑三个部门签字，等一周才拿到。希望能线上审批、压缩环节。',x:184,y:148,r:-3},
- {id:'NY-20260921-005',dept:'人事部',t:'档案专业培训<br>名额太少',s:'done',date:'9月21日',q:'每年档案专业培训就两三个名额，年轻同志想学没机会。希望增加名额或搞线上培训。',m:'已与上级档案部门对接，新增 10 个线上培训名额；11 月起每月组织一次馆内业务交流。',lim:'11 月起执行',rd:'9月30日',x:302,y:162,r:6}
+ {id:'NY-20260921-005',dept:'人事部',t:'档案专业培训<br>名额太少',s:'done',date:'9月21日',q:'每年档案专业培训就两三个名额，年轻同志想学没机会。希望增加名额或搞线上培训。',m:'已向上级档案部门争取培训资源，同时计划增加馆内业务交流频次，具体安排另行通知。',lim:'资源对接中',rd:'9月30日',x:302,y:162,r:6}
 ];
 const box = $('#mbCards'); if (!box) return;
 const GEO = C.map(c => ({ x: c.x, y: c.y, r: c.r }));
@@ -673,8 +876,10 @@ if (!RM) {
   new IntersectionObserver(es => { mbVisible = es[0].isIntersecting; }, { threshold: .25 }).observe(box);
   box.addEventListener('pointerenter', () => { mbHover = true; });
   box.addEventListener('pointerleave', () => { mbHover = false; });
+  box.addEventListener('focusin', () => { mbHover = true; });
+  box.addEventListener('focusout', () => { mbHover = false; });
   setInterval(() => {
-    if (!mbVisible || mbHover || document.hidden || !stage.hidden) return;
+    if (!mbVisible || mbHover || document.hidden || !stage.hidden || document.documentElement.classList.contains('rm-on')) return;
     const rest = PRI.slice(1).map(s => assign[s]);
     rest.push(rest.shift());
     PRI.slice(1).forEach((s, k) => { assign[s] = rest[k]; });
@@ -787,14 +992,18 @@ async function poolApi(path, method = 'GET', body = null) {
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch('/api/v1/employee' + path, opts);
   let d = null; try { d = await r.json(); } catch (e) {}
-  if (!r.ok) throw new Error((d && d.detail) || '请求失败（' + r.status + '）');
+  if (!r.ok) { const err = new Error((d && d.detail) || '请求失败（' + r.status + '）'); err.status = r.status; throw err; }
   return d;
 }
 function toast(m) { const t = $('#toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400); }
 async function ensureLogin() {
-  try { const me = await poolApi('/auth/me'); loggedIn = !!me.authenticated; } catch (e) {}
+  try { const me = await poolApi('/auth/me'); loggedIn = !!me.authenticated; } catch (e) { loggedIn = false; }
   if (!loggedIn) { toast('先登录一下，就能发言啦'); const lb = $('#loginBtn'); if (lb && !lb.hidden) lb.click(); return false; }
   return true;
+}
+function poolErr(err, fallback) {
+  if (err && err.status === 401) { loggedIn = false; toast('登录已过期，请重新登录一下'); const lb = $('#loginBtn'); if (lb && !lb.hidden) lb.click(); return; }
+  toast((err && err.message) || fallback);
 }
 const agoOf = iso => { const t = new Date(iso).getTime(); if (isNaN(t)) return ''; const s = Math.max(0, (Date.now() - t) / 1000); if (s < 60) return '刚刚'; if (s < 3600) return Math.floor(s / 60) + ' 分钟前'; if (s < 86400) return Math.floor(s / 3600) + ' 小时前'; if (s < 172800) return '昨天'; if (s < 30 * 86400) return Math.floor(s / 86400) + ' 天前'; const d = new Date(iso); return (d.getMonth() + 1) + '月' + d.getDate() + '日'; };
 const mapPost = j => ({ id: j.id, a: j.author, t: j.topic, ago: agoOf(j.created_at), m: j.content, l: j.like_count, liked: !!j.liked, h: j.hue || hues[0], r: (j.replies || []).map(x => [x.author, x.content]) });
@@ -806,7 +1015,7 @@ const card = (p, teaser) => `<article class="pcard${teaser ? ' teaser' : ''}" da
   <footer class="pc-f">
    ${teaser ? `<span class="pc-stat">♥ ${p.l}</span><span class="pc-stat">💬 ${p.r.length}</span>` :
    `<button class="like${p.liked ? ' on' : ''}" aria-pressed="${p.liked}" aria-label="有同感，${p.l} 人"><span class="hrt">♥</span><span class="lc">${p.l}</span><span class="lt">有同感</span></button>
-   <span class="pc-stat" aria-label="${p.r.length} 条回复">💬 ${p.r.length}</span>
+   <button type="button" class="pc-reply pc-open" aria-label="查看回复，共 ${p.r.length} 条">💬 回复 ${p.r.length}</button>
    <span class="more"><button class="more-b" aria-haspopup="menu" aria-expanded="false" aria-label="更多操作">…</button><span class="more-m" role="menu" hidden><button role="menuitem" class="rep">举报</button></span></span>`}
   </footer></article>`;
 /* 首页树洞预告：与树洞同源，按新旧分组轮换播出 */
@@ -829,12 +1038,14 @@ if (tz) {
     const p = P.find(x => x.id == art.dataset.id); if (p) openThread(art, p);
   });
   if (!RM) {
-    setInterval(() => { if (visible && !hold && !document.hidden) showGroup(gi + 1); }, 5200);
+    setInterval(() => { if (visible && !hold && !document.hidden && !effRM()) showGroup(gi + 1); }, 9000);
     new IntersectionObserver(es => { visible = es[0].isIntersecting; }, { threshold: .15 }).observe(tz);
     const holdOn = () => { hold = true; clearTimeout(holdT); holdT = setTimeout(() => { hold = false; }, 12000); };
     tz.addEventListener('pointerdown', holdOn);
     tz.addEventListener('pointerenter', () => { hold = true; });
     tz.addEventListener('pointerleave', () => { hold = false; });
+    tz.addEventListener('focusin', () => { hold = true; });
+    tz.addEventListener('focusout', () => { hold = false; });
     $$('.pt-dot').forEach((d, k) => d.addEventListener('click', () => { showGroup(k); holdOn(); }));
   }
 }
@@ -867,7 +1078,7 @@ $('#composer').onsubmit = async e => {
     const p = mapPost(j); P.unshift(p);
     sort = 'new'; $$('.sort button').forEach((x, k) => { x.classList.toggle('on', !k); x.setAttribute('aria-pressed', String(!k)); });
     tx.value = ''; render(p.id); buildTeaser(); toast('已发布');
-  } catch (err) { toast(err.message || '发布失败，内容已保留，可重试'); }
+  } catch (err) { poolErr(err, '发布失败，内容已保留，可重试'); }
   tx.oninput();
 };
 /* card interactions */
@@ -881,7 +1092,7 @@ list.addEventListener('click', async e => {
     p.liked = !was; p.l += p.liked ? 1 : -1; syncLike(lk, p);
     lk.classList.remove('pop'); void lk.offsetWidth; p.liked && lk.classList.add('pop');
     try { const r = await poolApi('/pool/posts/' + p.id + '/like', 'POST'); p.liked = !!r.liked; p.l = r.like_count; syncLike(lk, p); }
-    catch (err) { p.liked = was; p.l += was ? 1 : -1; syncLike(lk, p); toast('操作失败，请重试'); }
+    catch (err) { p.liked = was; p.l += was ? 1 : -1; syncLike(lk, p); poolErr(err, '操作失败，请重试'); }
     return;
   }
   const mb = e.target.closest('.more-b');
@@ -890,7 +1101,7 @@ list.addEventListener('click', async e => {
     e.target.closest('.more-m').hidden = true;
     if (!await ensureLogin()) return;
     try { await poolApi('/pool/posts/' + p.id + '/report', 'POST'); toast('已举报，管理员会尽快审核'); }
-    catch (err) { toast('举报失败，请重试'); }
+    catch (err) { poolErr(err, '举报失败，请重试'); }
     return;
   }
   if (e.target.closest('.pc-open')) openThread(art, p);
@@ -917,7 +1128,7 @@ function thread(body, p) {
       ul.insertAdjacentHTML('beforeend', `<li class="enter"><span class="pav sm" data-h="${hues[2]}"></span><div><b>${esc(rj.author)}</b><p>${esc(rj.content)}</p></div></li>`);
       pavFix(ul);
       inp.value = ''; body.querySelector('.th-stat').textContent = `♥ ${p.l} 人有同感 · 💬 ${p.r.length} 条回复`; render();
-    } catch (err) { toast(err.message || '回复失败，内容已保留，可重试'); }
+    } catch (err) { poolErr(err, '回复失败，内容已保留，可重试'); }
     btn.disabled = false;
   };
 }
