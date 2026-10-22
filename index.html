@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>暖言小站 · 员工建议平台</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%231F3D2F'/%3E%3Ctext x='50' y='70' font-size='54' text-anchor='middle' fill='%23F7F3EA' font-family='serif'%3E%E6%9A%96%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="/static/logo-leaf.png">
 <link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
-<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261023e">
+<link rel="stylesheet" href="/static/css/style-mobile2.css?v=20261023h">
 </head>
 <body>
   <div class="splash" id="splash" aria-hidden="true">
@@ -42,7 +42,7 @@
 
 <header class="nav" id="nav">
   <div class="wrap nav-in">
-    <a class="brand" href="#/" aria-label="暖言小站 首页"><svg class="brand-mark"><use href="#mark"/></svg><span>暖言小站</span></a>
+    <a class="brand" href="#/" aria-label="暖言小站 首页"><img class="brand-mark" src="/static/logo-leaf.png" alt=""><span>暖言小站</span></a>
     <nav aria-label="主导航"><ul class="nav-links" id="navLinks">
       <li><a href="#/" data-nav="home">首页</a></li>
       <li><a href="#/pool" data-nav="pool">树洞</a></li>
@@ -55,7 +55,7 @@
       <button class="chip" id="acctBtn" aria-haspopup="menu" aria-expanded="false" hidden><span class="avatar" id="chipAvatar" aria-hidden="true">王</span><span id="chipName">小王</span><svg class="ic sm rot"><use href="#chev"/></svg></button>
       <div class="menu" id="acctMenu" role="menu" hidden>
         <div class="menu-head"><b id="menuName">—</b><span id="menuSub">已登录</span></div>
-        <button role="menuitem" class="menu-item" id="settingsBtn">个人设置</button>
+        <button role="menuitem" class="menu-item" id="settingsBtn">个人设置（暂未开放）</button>
         <button role="menuitem" class="menu-item" id="guestToggle">切换访客视图</button>
         <div class="menu-sep"></div>
         <button role="menuitem" class="menu-item danger" id="logoutBtn">退出登录</button>
@@ -162,12 +162,13 @@
         <h1 class="h2">这条建议发给哪个部门？</h1>
         <p class="muted">可单选或多选，最多选两个。</p>
         <div class="topics" role="group" aria-label="选择部门">
-          <button class="topic" role="checkbox" aria-checked="false" data-d="综合办公室"><span class="ti"><svg class="ic"><use href="#d-office"/></svg></span><b>综合办公室</b></button>
-          <button class="topic" role="checkbox" aria-checked="false" data-d="人事部"><span class="ti"><svg class="ic"><use href="#d-hr"/></svg></span><b>人事部</b></button>
-          <button class="topic" role="checkbox" aria-checked="false" data-d="运行管理部"><span class="ti"><svg class="ic"><use href="#d-gear"/></svg></span><b>运行管理部</b></button>
-          <button class="topic" role="checkbox" aria-checked="false" data-d="经营管理部"><span class="ti"><svg class="ic"><use href="#d-chart"/></svg></span><b>经营管理部</b></button>
-          <button class="topic" role="checkbox" aria-checked="false" data-d="电子档案管理中心"><span class="ti"><svg class="ic"><use href="#d-archive"/></svg></span><b>电子档案管理中心</b></button>
-          <button class="topic" role="checkbox" aria-checked="false" data-d="综合服务中心"><span class="ti"><svg class="ic"><use href="#d-service"/></svg></span><b>综合服务中心</b></button>
+          <button class="topic" role="checkbox" aria-checked="false" data-d="综合办公室"><span class="ti"><svg class="ic"><use href="#d-office"/></svg></span><b>综合办公室</b><span class="td">行政综合、公文会议、综合协调类事项</span></button>
+          <button class="topic" role="checkbox" aria-checked="false" data-d="人事部"><span class="ti"><svg class="ic"><use href="#d-hr"/></svg></span><b>人事部</b><span class="td">招聘调配、薪酬社保、考核培训、职称评聘</span></button>
+          <button class="topic" role="checkbox" aria-checked="false" data-d="运行管理部"><span class="ti"><svg class="ic"><use href="#d-gear"/></svg></span><b>运行管理部</b><span class="td">库房运行、设备设施、安全与应急管理</span></button>
+          <button class="topic" role="checkbox" aria-checked="false" data-d="经营管理部"><span class="ti"><svg class="ic"><use href="#d-chart"/></svg></span><b>经营管理部</b><span class="td">经营计划、预算财务、采购合同与资产管理</span></button>
+          <button class="topic" role="checkbox" aria-checked="false" data-d="电子档案管理中心"><span class="ti"><svg class="ic"><use href="#d-archive"/></svg></span><b>电子档案管理中心</b><span class="td">档案数字化、检索系统、数据与技术支持</span></button>
+          <button class="topic" role="checkbox" aria-checked="false" data-d="综合服务中心"><span class="ti"><svg class="ic"><use href="#d-service"/></svg></span><b>综合服务中心</b><span class="td">查阅接待、后勤保障、维修、食堂与班车</span></button>
+          <button class="topic platform" role="checkbox" aria-checked="false" data-d="平台分派" data-platform="1"><span class="ti"><svg class="ic"><use href="#help"/></svg></span><b>不确定，由平台分派</b><span class="td">拿不准归哪个部门时选这个，平台会帮你转给对口部门</span></button>
         </div>
       </div>
       <div class="stage" data-step="2" hidden>
@@ -192,7 +193,7 @@
       <div class="stage success" data-step="4" hidden>
         <div class="burst" aria-hidden="true"><svg viewBox="0 0 120 120"><defs><linearGradient id="okFill" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2F7EE"/><stop offset="1" stop-color="#DCE8D7"/></linearGradient><linearGradient id="okTick" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#31624A"/><stop offset="1" stop-color="#1B3128"/></linearGradient></defs><circle class="halo" cx="60" cy="60" r="44"/><circle class="ring" cx="60" cy="60" r="44"/><path class="tick" d="M40 61l14 14 28-30"/></svg><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <h1 class="h2">已收到，谢谢你愿意说出来</h1>
-        <p class="muted">建议已送达承办部门，进度会实时更新在「我的反馈」里。</p>
+        <p class="muted" id="sOkMsg">建议已送达承办部门，进度会实时更新在「我的反馈」里。</p>
         <div class="idbox"><span>建议编号</span><b id="sid">—</b></div>
         <div class="cta-row center"><a class="btn primary lg" href="#/mine?open=NY-20261019-008">查看进度</a><a class="btn ghost lg" href="#/">回到首页</a></div>
       </div>
@@ -246,6 +247,7 @@
       <p class="am-err" id="loginErr" hidden></p>
       <button class="btn primary lg am-submit" type="submit">登录</button>
       <p class="am-switch">还没有账号？<button type="button" data-goto="register">立即注册</button></p>
+      <p class="am-help">账号问题（忘记密码、无法登录）？请到综合办公室找平台管理员当面处理。</p>
     </form>
     <form class="am-form" id="registerForm" autocomplete="off" hidden>
       <h2 id="amTitleReg">创建账号</h2>
@@ -279,7 +281,7 @@
 <section class="view" data-view="mine" hidden>
   <div class="wrap mine">
     <div class="mine-head"><div><p class="kicker">我的反馈</p><h1 class="h2">你提交过的建议</h1></div>
-      <div class="filters" role="tablist" aria-label="筛选"><button class="f on" data-f="all" role="tab" aria-selected="true">全部</button><button class="f" data-f="待受理" role="tab">待受理</button><button class="f" data-f="办理中" role="tab">办理中</button><button class="f" data-f="已回复" role="tab">已回复</button></div>
+      <div class="filters" role="tablist" aria-label="筛选"><button class="f on" data-f="all" role="tab" aria-selected="true">全部</button><button class="f" data-f="supply" role="tab">待我补充<span class="f-badge" id="fSupplyN" hidden></span></button><button class="f" data-f="pending" role="tab">待受理</button><button class="f" data-f="doing" role="tab">办理中</button><button class="f" data-f="review" role="tab">回复待审核</button><button class="f" data-f="replied" role="tab">已回复</button><button class="f" data-f="closed" role="tab">已办结</button><button class="f" data-f="ended" role="tab">已撤回/驳回</button></div>
     </div>
     <ul class="flist" id="flist"></ul>
   </div>
@@ -298,9 +300,11 @@
         <h3>保存期限</h3><p>建议办结满 2 年后，账号关联将被删除，建议内容以匿名形式保留用于统计。</p>
       </article>
       <div class="faq">
-        <details open><summary>多久能收到答复？</summary><p>2 个工作日内受理，一般 10 个工作日内给出答复。复杂问题会先回复办理计划。</p></details>
-        <details><summary>对答复不满意怎么办？</summary><p>在详情页点击「继续反馈」，建议会重新进入办理，并抄送综合办公室。</p></details>
-        <details><summary>可以撤回建议吗？</summary><p>受理前可以随时撤回；受理后可申请关闭。</p></details>
+        <details open><summary>多久能收到答复？</summary><p>2 个工作日内受理，一般 10 个工作日内给出答复。详情页会显示预计答复日期；复杂问题会先回复阶段计划，延期会在进度中说明原因和新日期。</p></details>
+        <details><summary>对答复不满意怎么办？</summary><p>在详情页点击「继续反馈」写下补充说明，建议会重新进入办理；已办结的建议在 30 天内也可以继续反馈。你也可以评价时选择重新办理。</p></details>
+        <details><summary>可以撤回建议吗？</summary><p>受理前（待受理、待分派或退回补充状态）可以在详情页直接撤回；受理后不能直接撤回，可在详情页「申请关闭」，管理员确认后结束办理。</p></details>
+        <details><summary>部门让我补充材料，怎么办？</summary><p>详情页顶部会写明退回时间、原因和需要补充的内容。补好后点「发送补充」，建议会重新进入办理；你历次补充的正文、时间和送达状态都会保留在详情里，随时可查。</p></details>
+        <details><summary>怎么知道办到哪一步了？</summary><p>「我的反馈」详情里有提交、受理、办理、回复四步进度和预计答复日期；状态一有变化，站内通知和手机推送（需在通知面板开启）会第一时间告诉你。</p></details>
         <details><summary>紧急安全隐患怎么报？</summary><p>请立即拨打安全值班电话 8110。本平台不适合处理需要即刻响应的事项。</p></details>
       </div>
     </div>
@@ -317,7 +321,7 @@
 
 <footer class="foot">
   <div class="wrap foot-in">
-    <div class="brand sm"><svg class="brand-mark"><use href="#mark"/></svg><span>暖言小站</span></div>
+    <div class="brand sm"><img class="brand-mark" src="/static/logo-leaf.png" alt=""><span>暖言小站</span></div>
     <p class="muted small">员工建议平台 · 由综合办公室维护</p>
     <nav aria-label="页脚"><a href="#/help" data-scroll="privacy">隐私说明</a><a href="#/help">帮助</a><a href="#/help" data-scroll="contact">联系我们</a></nav>
   </div>
@@ -336,7 +340,7 @@
   </article>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<script src="/static/js/app-mobile2.js?v=20261023e"></script>
+<script src="/static/js/app-mobile2.js?v=20261023h"></script>
 
 </body>
 </html>
